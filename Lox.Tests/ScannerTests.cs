@@ -65,8 +65,27 @@ namespace Lox.Tests
 		}
 
 		[Test]
+		public void ParseIfStatement()
+		{
+			var scanner = new Scanner(@"if(5 == 5) print 23;", error);
+			Assert.That(scanner.Tokens.Select(t => t.Type).ToArray(), Is.EqualTo(new[]
+			{
+				TokenType.If, TokenType.LeftParenthesis, TokenType.Number, TokenType.EqualEqual,
+				TokenType.Number, TokenType.RightParenthesis, TokenType.Print, TokenType.Number,
+				TokenType.Semicolon, TokenType.Eof
+			}));
+		}
+
+		[Test]
+		public void ParseStringLineIncrement()
+		{
+			var scanner = new Scanner("\"testText\n\"", error);
+			Assert.That(scanner.Tokens[0].Line, Is.EqualTo(2));
+		}
+
+		[Test]
 		public void ParseInvalidCode() =>
-			Assert.That(() => new Scanner($"#", error), Throws.InstanceOf<UnexpectedCharacter>());
+			Assert.That(() => new Scanner("#", error), Throws.InstanceOf<UnexpectedCharacter>());
 
 		[Test]
 		public void ParseUnterminatedString() =>
@@ -81,13 +100,6 @@ namespace Lox.Tests
 		{
 			var scanner = new Scanner(code, error);
 			Assert.That(scanner.Tokens.Select(t => t.Type).FirstOrDefault(), Is.EqualTo(expectedTokenType));
-		}
-
-		[Test]
-		public void ParseStringLineIncrement()
-		{
-			var scanner = new Scanner("\"testText\n\"", error);
-			Assert.That(scanner.Tokens[0].Line, Is.EqualTo(2));
 		}
 	}
 }

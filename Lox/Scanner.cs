@@ -39,6 +39,7 @@ public sealed class Scanner
 			throw new UnexpectedCharacter(line);
 	}
 
+	// ReSharper disable once CyclomaticComplexity
 	private Token? GetNextTokenSingleCharacter(char c) =>
 		c switch
 		{
@@ -145,9 +146,7 @@ public sealed class Scanner
 			Advance();
 		}
 		if (IsAtEnd())
-		{
 			throw new UnterminatedString(line);
-		}
 		// The closing "
 		Advance();
 		// Trim the surrounding quotes.
