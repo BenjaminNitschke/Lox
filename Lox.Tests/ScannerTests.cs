@@ -1,4 +1,5 @@
 using System.Linq;
+using Lox.Exception;
 using NUnit.Framework;
 
 namespace Lox.Tests
@@ -61,6 +62,32 @@ namespace Lox.Tests
 (( )){} // grouping stuff
 !*+-/=<> <= == // operators", error);
 			Assert.That(scanner.Tokens, Has.Count.GreaterThan(10));
+		}
+
+		[Test]
+		public void ParseInvalidCode() =>
+			Assert.That(() => new Scanner($"#", error), Throws.InstanceOf<UnexpectedCharacter>());
+
+		[Test]
+		public void ParseUnterminatedString() =>
+			Assert.That(() => new Scanner("\"testText", error),
+				Throws.InstanceOf<UnterminatedString>());
+
+		[TestCase(".", TokenType.Dot)]
+		[TestCase(",", TokenType.Comma)]
+		[TestCase("25.4", TokenType.Number)]
+		[TestCase(">", TokenType.Greater)]
+		public void ParseTokenTypes(string code, TokenType expectedTokenType)
+		{
+			var scanner = new Scanner(code, error);
+			Assert.That(scanner.Tokens.Select(t => t.Type).FirstOrDefault(), Is.EqualTo(expectedTokenType));
+		}
+
+		[Test]
+		public void ParseStringLineIncrement()
+		{
+			var scanner = new Scanner("\"testText\n\"", error);
+			Assert.That(scanner.Tokens[0].Line, Is.EqualTo(2));
 		}
 	}
 }
