@@ -11,20 +11,6 @@ namespace Lox.Tests
 
 		private TestErrorReporter error = null!;
 
-		public class TestErrorReporter : ErrorReporter
-		{
-			public void Report(int line, string location, string message)
-			{
-				Line = line;
-				Location = location;
-				Message = message;
-			}
-
-			public int Line { get; set; }
-			public string Location { get; set; } = "";
-			public string Message { get; set; } = "";
-		}
-
 		[Test]
 		public void ParseVariableDeclaration()
 		{
@@ -68,12 +54,13 @@ namespace Lox.Tests
 		public void ParseIfStatement()
 		{
 			var scanner = new Scanner(@"if(5 == 5) print 23;", error);
-			Assert.That(scanner.Tokens.Select(t => t.Type).ToArray(), Is.EqualTo(new[]
-			{
-				TokenType.If, TokenType.LeftParenthesis, TokenType.Number, TokenType.EqualEqual,
-				TokenType.Number, TokenType.RightParenthesis, TokenType.Print, TokenType.Number,
-				TokenType.Semicolon, TokenType.Eof
-			}));
+			Assert.That(scanner.Tokens.Select(t => t.Type).ToArray(),
+				Is.EqualTo(new[]
+				{
+					TokenType.If, TokenType.LeftParenthesis, TokenType.Number, TokenType.EqualEqual,
+					TokenType.Number, TokenType.RightParenthesis, TokenType.Print, TokenType.Number,
+					TokenType.Semicolon, TokenType.Eof
+				}));
 		}
 
 		[Test]
@@ -96,6 +83,7 @@ namespace Lox.Tests
 		[TestCase(",", TokenType.Comma)]
 		[TestCase("25.4", TokenType.Number)]
 		[TestCase(">", TokenType.Greater)]
+		[TestCase(">=", TokenType.GreaterEqual)]
 		public void ParseTokenTypes(string code, TokenType expectedTokenType)
 		{
 			var scanner = new Scanner(code, error);
