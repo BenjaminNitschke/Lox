@@ -40,11 +40,16 @@ public sealed class ParserTests
 			Is.EqualTo(expectedSecondExpressionValue));
 	}
 
+	[TestCase("25 + 2", "25", "+", "2")]
 	[TestCase("25 * 2", "25", "*", "2")]
+	[TestCase("25 > 2", "25", ">", "2")]
+	[TestCase("25 < 2", "25", "<", "2")]
+	[TestCase("25 == 2", "25", "==", "2")]
+	[TestCase("25 != 2", "25", "!=", "2")]
 	[TestCase("30 / 2", "30", "/", "2")]
 	[TestCase("30 / false", "30", "/", "False")]
 	[TestCase("true * false", "True", "*", "False")]
-	public void ParseFactorBinaryExpression(string code, string expectedLeftExpression,
+	public void ParseSingleBinaryExpression(string code, string expectedLeftExpression,
 		string expectedOperator, string expectedRightExpression)
 	{
 		var parser = GetParser(code);
@@ -58,6 +63,16 @@ public sealed class ParserTests
 		Assert.That(rightExpression?.Literal?.ToString(), Is.EqualTo(expectedRightExpression));
 	}
 
+	[TestCase("25 * 2 + 30 / 2", 4)]
+	[TestCase("-25 * 2 + 30 / 2", 5)]
+	[TestCase("-25 * 2 + 30 / 2 > 5", 6)]
+	public void ParseMultipleBinaryExpressions(string code, int expectedNumberOfExpressions)
+	{
+		var parser = GetParser(code);
+		Assert.That(actual: GetExpressionsCount(parser.Expressions.FirstOrDefault()!),
+			Is.EqualTo(expectedNumberOfExpressions));
+	}
+
 	[TestCase("/ 2 30")]
 	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<UnknownExpression>());
 
@@ -66,4 +81,15 @@ public sealed class ParserTests
 		Assert.That(() => GetParser("/"), Throws.InstanceOf<UnknownExpression>());
 
 	private Parser GetParser(string code) => new(new Scanner(code, error).Tokens);
+
+	private static int GetExpressionsCount(Expression expression) =>
+		expression switch
+		{
+			Expression.BinaryExpression binaryExpression =>
+				GetExpressionsCount(binaryExpression.LeftExpression) +
+				GetExpressionsCount(binaryExpression.RightExpression),
+			Expression.UnaryExpression unaryExpression => 1 + GetExpressionsCount(unaryExpression.RightExpression),
+			Expression.LiteralExpression => 1,
+			_ => 0
+		};
 }

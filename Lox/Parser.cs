@@ -13,16 +13,43 @@ public sealed class Parser
 	private readonly IReadOnlyList<Token> tokens;
 	public IReadOnlyList<Expression> Expressions => expressions;
 	private readonly List<Expression> expressions;
-	private List<Expression> Parse() => new() { ParseFactorBinaryExpressions() };
+	private List<Expression> Parse() => new() { ParseEqualityExpression() };
 	private bool IsAtEnd() => Peek().Type == TokenType.Eof;
 	private Token Peek() => tokens.ElementAt(currentTokenCount);
 	private Token Previous() => tokens.ElementAt(currentTokenCount - 1);
 	private int currentTokenCount;
 
-	private Expression ParseFactorBinaryExpressions()
+	private Expression ParseEqualityExpression()
+	{
+		var expression = ParseComparisonExpressions();
+		while (Match(TokenType.EqualEqual, TokenType.BangEqual))
+			expression =
+				new Expression.BinaryExpression(expression, Previous(), ParseComparisonExpressions());
+		return expression;
+	}
+
+	private Expression ParseComparisonExpressions()
+	{
+		var expression = ParseArithmeticExpressions();
+		while (Match(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual))
+			expression =
+				new Expression.BinaryExpression(expression, Previous(), ParseArithmeticExpressions());
+		return expression;
+	}
+
+	private Expression ParseArithmeticExpressions()
+	{
+		var expression = ParseFactorExpressions();
+		while (Match(TokenType.Plus, TokenType.Minus))
+			expression = new Expression.BinaryExpression(leftExpression: expression,
+				operatorToken: Previous(), rightExpression: ParseFactorExpressions());
+		return expression;
+	}
+
+	private Expression ParseFactorExpressions()
 	{
 		var expression = ParseUnaryExpressions();
-		if (Match(TokenType.Slash, TokenType.Star))
+		while (Match(TokenType.Slash, TokenType.Star))
 			expression = new Expression.BinaryExpression(leftExpression: expression,
 				operatorToken: Previous(), rightExpression: ParseUnaryExpressions());
 		return expression;
