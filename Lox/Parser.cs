@@ -2,7 +2,7 @@
 
 namespace Lox;
 
-public class Parser
+public sealed class Parser
 {
 	public Parser(IReadOnlyList<Token> tokens)
 	{
@@ -13,22 +13,36 @@ public class Parser
 	private readonly IReadOnlyList<Token> tokens;
 	public IReadOnlyList<Expression> Expressions => expressions;
 	private readonly List<Expression> expressions;
-	private List<Expression> Parse() => new() { Primary() };
+	private List<Expression> Parse() => new() { ParseFactorBinaryExpressions() };
 	private bool IsAtEnd() => Peek().Type == TokenType.Eof;
 	private Token Peek() => tokens.ElementAt(currentTokenCount);
 	private Token Previous() => tokens.ElementAt(currentTokenCount - 1);
 	private int currentTokenCount;
 
-	private Expression Primary()
+	private Expression ParseFactorBinaryExpressions()
+	{
+		var expression = ParseUnaryExpressions();
+		if (Match(TokenType.Slash, TokenType.Star))
+			expression = new Expression.BinaryExpression(leftExpression: expression,
+				operatorToken: Previous(), rightExpression: ParseUnaryExpressions());
+		return expression;
+	}
+
+	private Expression ParseUnaryExpressions() =>
+		Match(TokenType.Bang, TokenType.Minus)
+			? new Expression.UnaryExpression(operatorToken: Previous(), rightExpression: ParseUnaryExpressions())
+			: ParsePrimaryExpressions();
+
+	private Expression ParsePrimaryExpressions()
 	{
 		if (Match(TokenType.False))
-			return new Expression.Literal(false, Previous());
+			return new Expression.LiteralExpression(false, Previous());
 		if (Match(TokenType.True))
-			return new Expression.Literal(true, Previous());
+			return new Expression.LiteralExpression(true, Previous());
 		if (Match(TokenType.Nil))
-			return new Expression.Literal(null, Previous());
+			return new Expression.LiteralExpression(null, Previous());
 		if (Match(TokenType.Number, TokenType.String))
-			return new Expression.Literal(Previous().Literal, Previous());
+			return new Expression.LiteralExpression(Previous().Literal, Previous());
 		throw new UnknownExpression(Peek());
 	}
 
