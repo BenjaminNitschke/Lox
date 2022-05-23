@@ -1,6 +1,4 @@
-﻿using Lox.Exception;
-
-namespace Lox;
+﻿namespace Lox;
 
 public sealed class Parser
 {
@@ -71,6 +69,11 @@ public sealed class Parser
 		if (Match(TokenType.Number, TokenType.String))
 			return new Expression.LiteralExpression(Previous().Literal, Previous());
 		throw new UnknownExpression(Peek());
+	}
+
+	public class UnknownExpression : Exception
+	{
+		public UnknownExpression(Token token) : base(token.Type.ToString()) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)

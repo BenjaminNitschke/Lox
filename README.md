@@ -2,8 +2,7 @@
 
 Lox written in pure C# Test Driven Development (TDD)
 
-TODO:
-[![Build Status](http://build.deltaengine.net:8080/app/rest/builds/aggregated/strob:(buildType:(project:(id:Strict)))/statusIcon)](http://build.deltaengine.net:8080/viewType.html?buildTypeId=Strict&guest=1) <sup>[100% Coverage](http://build.deltaengine.net:8080/repository/download/Strict/.lastSuccessful/AllResults.html) [0 Issues](http://build.deltaengine.net:8080/repository/download/Strict/.lastSuccessful/NDependOut/NDependReport.html#Main)</sup>
+[![Build Status](http://build.deltaengine.net:8080/app/rest/builds/aggregated/strob:(buildType:(project:(id:Strict_Lox)))/statusIcon)](http://build.deltaengine.net:8080/viewType.html?buildTypeId=Strict_Lox&guest=1) <sup>[100% Coverage](http://build.deltaengine.net:8080/repository/download/Strict_Lox/.lastSuccessful/AllResults.html) [0 Issues](http://build.deltaengine.net:8080/repository/download/Strict_Lox/.lastSuccessful/NDependOut/NDependReport.html#Main)</sup>
 
 ## TDD
 

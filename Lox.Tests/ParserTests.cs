@@ -1,16 +1,10 @@
 ﻿using System.Linq;
-using Lox.Exception;
 using NUnit.Framework;
 
 namespace Lox.Tests;
 
 public sealed class ParserTests
 {
-	[SetUp]
-	public void CreateErrorReporter() => error = new TestErrorReporter();
-
-	private TestErrorReporter error = null!;
-
 	[TestCase("false", "False", TokenType.False)]
 	[TestCase("true", "True", TokenType.True)]
 	[TestCase("nil", null, TokenType.Nil)]
@@ -18,7 +12,7 @@ public sealed class ParserTests
 	public void ParseSinglePrimaryExpression(string code, string expectedValue,
 		TokenType expectedTokenType)
 	{
-		var parser = new Parser(new Scanner(code, error).Tokens);
+		var parser = new Parser(new Scanner(code).Tokens);
 		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.LiteralExpression>());
 		var literalExpression = parser.Expressions.FirstOrDefault() as Expression.LiteralExpression;
 		Assert.That(literalExpression?.Literal?.ToString(), Is.EqualTo(expectedValue));
@@ -74,13 +68,13 @@ public sealed class ParserTests
 	}
 
 	[TestCase("/ 2 30")]
-	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<UnknownExpression>());
+	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<Parser.UnknownExpression>());
 
 	[Test]
 	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/"), Throws.InstanceOf<UnknownExpression>());
+		Assert.That(() => GetParser("/"), Throws.InstanceOf<Parser.UnknownExpression>());
 
-	private Parser GetParser(string code) => new(new Scanner(code, error).Tokens);
+	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);
 
 	private static int GetExpressionsCount(Expression expression) =>
 		expression switch
@@ -90,6 +84,6 @@ public sealed class ParserTests
 				GetExpressionsCount(binaryExpression.RightExpression),
 			Expression.UnaryExpression unaryExpression => 1 + GetExpressionsCount(unaryExpression.RightExpression),
 			Expression.LiteralExpression => 1,
-			_ => 0
+			_ => 0 //ncrunch: no coverage
 		};
 }

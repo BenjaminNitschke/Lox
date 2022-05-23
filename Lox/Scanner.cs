@@ -1,25 +1,31 @@
-﻿using Lox.Exception;
-
-namespace Lox;
+﻿namespace Lox;
 
 public sealed class Scanner
 {
-	public Scanner(string code, ErrorReporter error)
+	public Scanner(string code)
 	{
 		this.code = code;
-		this.error = error;
+		var exceptions = new List<Exception>();
 		while (!IsAtEnd())
 		{
-			start = current;
-			ScanToken();
+			startTokenPosition = current;
+			try
+			{
+				ScanToken();
+			}
+			catch (Exception ex)
+			{
+				exceptions.Add(ex);
+			}
 		}
+		if (exceptions.Count > 0)
+			throw new AggregateException(exceptions);
 		tokens.Add(new Token(TokenType.Eof, "", null, line));
 	}
 
 	private readonly string code;
-	private readonly ErrorReporter error;
 	private bool IsAtEnd() => current >= code.Length;
-	private readonly int start;
+	private readonly int startTokenPosition;
 	private int current;
 	private int line = 1;
 	public IReadOnlyList<Token> Tokens => tokens;
@@ -28,15 +34,15 @@ public sealed class Scanner
 	private void ScanToken()
 	{
 		var c = Advance();
-		var token = GetNextTokenSingleCharacter(c) ??
-			GetNextTokenComparisons(c) ??
-			GetCommentOrSlash(c) ??
-			IgnoreWhiteSpace(c) ??
-			HandleNewLine(c) ??
-			HandleString(c) ??
-			HandleDigit(c);
-		if (token == null)
-			throw new UnexpectedCharacter(line);
+		_ = GetNextTokenSingleCharacter(c) ?? GetNextTokenComparisons(c) ??
+			GetCommentOrSlash(c) ?? IgnoreWhiteSpace(c) ?? HandleNewLine(c) ??
+			HandleString(c) ?? HandleDigit(c) ?? throw new UnexpectedCharacter(line, c);
+	}
+
+	public sealed class UnexpectedCharacter : Exception
+	{
+		public UnexpectedCharacter(int fileLineNumber, char character) :
+			base(character + ": line " + fileLineNumber) { }
 	}
 
 	// ReSharper disable once CyclomaticComplexity
@@ -116,7 +122,7 @@ public sealed class Scanner
 
 	private Token AddToken(TokenType type, object? literal = null)
 	{
-		var token = new Token(type, code.Substring(start, current - start), literal, line);
+		var token = new Token(type, code.Substring(startTokenPosition, current - startTokenPosition), literal, line);
 		// should be done at caller
 		tokens.Add(token);
 		return token;
@@ -150,7 +156,13 @@ public sealed class Scanner
 		// The closing "
 		Advance();
 		// Trim the surrounding quotes.
-		return AddToken(TokenType.String, code.Substring(start + 1, current - start - 2));
+		return AddToken(TokenType.String, code.Substring(startTokenPosition + 1, current - startTokenPosition - 2));
+	}
+
+	public sealed class UnterminatedString : Exception
+	{
+		public UnterminatedString(int fileLineNumber, string message = "") :
+			base(message + " : line " + (fileLineNumber + 1)) { }
 	}
 
 	private static bool IsDigit(char c) => c is >= '0' and <= '9';
@@ -166,7 +178,7 @@ public sealed class Scanner
 			while (IsDigit(Peek()))
 				Advance();
 		}
-		return AddToken(TokenType.Number, double.Parse(code.Substring(start, current - start)));
+		return AddToken(TokenType.Number, double.Parse(code.Substring(startTokenPosition, current - startTokenPosition)));
 	}
 
 	private char PeekNext() =>
@@ -178,7 +190,7 @@ public sealed class Scanner
 	{
 		while (IsAlphaNumeric(Peek()))
 			Advance();
-		var text = code.Substring(start, current - start);
+		var text = code.Substring(startTokenPosition, current - startTokenPosition);
 		return AddToken(Keywords.TryGetValue(text, out var type)
 			? type
 			: TokenType.Identifier);
