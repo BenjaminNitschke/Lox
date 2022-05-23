@@ -1,4 +1,5 @@
 using System.Linq;
+using Lox.Exception;
 using NUnit.Framework;
 
 namespace Lox.Tests
@@ -9,20 +10,6 @@ namespace Lox.Tests
 		public void CreateErrorReporter() => error = new TestErrorReporter();
 
 		private TestErrorReporter error = null!;
-
-		public class TestErrorReporter : ErrorReporter
-		{
-			public void Report(int line, string location, string message)
-			{
-				Line = line;
-				Location = location;
-				Message = message;
-			}
-
-			public int Line { get; set; }
-			public string Location { get; set; } = "";
-			public string Message { get; set; } = "";
-		}
 
 		[Test]
 		public void ParseVariableDeclaration()
@@ -61,6 +48,46 @@ namespace Lox.Tests
 (( )){} // grouping stuff
 !*+-/=<> <= == // operators", error);
 			Assert.That(scanner.Tokens, Has.Count.GreaterThan(10));
+		}
+
+		[Test]
+		public void ParseIfStatement()
+		{
+			var scanner = new Scanner(@"if(5 == 5) print 23;", error);
+			Assert.That(scanner.Tokens.Select(t => t.Type).ToArray(),
+				Is.EqualTo(new[]
+				{
+					TokenType.If, TokenType.LeftParenthesis, TokenType.Number, TokenType.EqualEqual,
+					TokenType.Number, TokenType.RightParenthesis, TokenType.Print, TokenType.Number,
+					TokenType.Semicolon, TokenType.Eof
+				}));
+		}
+
+		[Test]
+		public void ParseStringLineIncrement()
+		{
+			var scanner = new Scanner("\"testText\n\"", error);
+			Assert.That(scanner.Tokens[0].Line, Is.EqualTo(2));
+		}
+
+		[Test]
+		public void ParseInvalidCode() =>
+			Assert.That(() => new Scanner("#", error), Throws.InstanceOf<UnexpectedCharacter>());
+
+		[Test]
+		public void ParseUnterminatedString() =>
+			Assert.That(() => new Scanner("\"testText", error),
+				Throws.InstanceOf<UnterminatedString>());
+
+		[TestCase(".", TokenType.Dot)]
+		[TestCase(",", TokenType.Comma)]
+		[TestCase("25.4", TokenType.Number)]
+		[TestCase(">", TokenType.Greater)]
+		[TestCase(">=", TokenType.GreaterEqual)]
+		public void ParseTokenTypes(string code, TokenType expectedTokenType)
+		{
+			var scanner = new Scanner(code, error);
+			Assert.That(scanner.Tokens.Select(t => t.Type).FirstOrDefault(), Is.EqualTo(expectedTokenType));
 		}
 	}
 }

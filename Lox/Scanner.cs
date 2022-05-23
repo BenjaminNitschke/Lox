@@ -1,4 +1,6 @@
-﻿namespace Lox;
+﻿using Lox.Exception;
+
+namespace Lox;
 
 public sealed class Scanner
 {
@@ -34,10 +36,10 @@ public sealed class Scanner
 			HandleString(c) ??
 			HandleDigit(c);
 		if (token == null)
-			// next up: throw new UnexpectedCharacter();
-			error.Report(line, "Unexpected character.");
+			throw new UnexpectedCharacter(line);
 	}
 
+	// ReSharper disable once CyclomaticComplexity
 	private Token? GetNextTokenSingleCharacter(char c) =>
 		c switch
 		{
@@ -144,11 +146,7 @@ public sealed class Scanner
 			Advance();
 		}
 		if (IsAtEnd())
-		{
-			// would be easier with exceptions
-			error.Report(line, "Unterminated string.");
-			return NoToken();
-		}
+			throw new UnterminatedString(line);
 		// The closing "
 		Advance();
 		// Trim the surrounding quotes.
