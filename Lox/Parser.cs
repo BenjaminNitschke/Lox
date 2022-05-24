@@ -95,13 +95,13 @@ public sealed class Parser
 		if (Match(TokenType.Identifier))
 			return new Expression.VariableExpression(Previous());
 		if (ParseGroupingExpression(out var groupingExpression))
-			return groupingExpression;
+			return groupingExpression ?? throw new UnknownExpression(Peek());
 		throw new UnknownExpression(Peek());
 	}
 
-	private bool ParseGroupingExpression(out Expression groupingExpression)
+	private bool ParseGroupingExpression(out Expression? groupingExpression)
 	{
-		groupingExpression = null!;
+		groupingExpression = null;
 		if (Match(TokenType.LeftParenthesis))
 		{
 			var expression = ParseExpression();
@@ -156,10 +156,10 @@ public sealed class Parser
 		return Peek().Type == tokenType;
 	}
 
-	private Token Advance()
+	private void Advance()
 	{
 		if (!IsAtEnd())
 			currentTokenCount++;
-		return Previous();
+		Previous();
 	}
 }
