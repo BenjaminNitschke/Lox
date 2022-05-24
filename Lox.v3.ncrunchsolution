@@ -3,6 +3,7 @@
     <AllowParallelTestExecution>True</AllowParallelTestExecution>
     <MetricsExclusionList>
       <Value>Lox.cs:Lox\Lox.csproj</Value>
+      <Value>Program.cs:Lox\Lox.csproj</Value>
     </MetricsExclusionList>
     <SolutionConfigured>True</SolutionConfigured>
   </Settings>

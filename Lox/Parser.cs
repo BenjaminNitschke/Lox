@@ -114,10 +114,13 @@ public sealed class Parser
 		return false;
 	}
 
-	private Token Consume(TokenType type)
+	private void Consume(TokenType type)
 	{
 		if (Check(type))
-			return Advance();
+		{
+			Advance();
+			return;
+		}
 		throw type switch
 		{
 			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),

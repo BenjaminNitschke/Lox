@@ -1,6 +1,6 @@
 ﻿namespace Lox;
 
-public sealed class Lox
+public sealed class Program
 {
 	public static void Main(string[] args)
 	{
@@ -19,7 +19,7 @@ public sealed class Lox
 
 	private static void Run(string code, string filePath = "")
 	{
-		var expression = new Parser(new Scanner(code, filePath).Tokens);
+		var unused = new Parser(new Scanner(code, filePath).Tokens).Expressions;
 	}
 
 	private static void RunPrompt()

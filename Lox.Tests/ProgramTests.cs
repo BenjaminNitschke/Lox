@@ -3,14 +3,14 @@ using NUnit.Framework;
 
 namespace Lox.Tests;
 
-public sealed class LoxTests
+public sealed class ProgramTests
 {
 	[Test]
 	public void RunLoxFileWithInvalidCharacterFile()
 	{
 		try
 		{
-			Lox.Main(new[] { @"C:\Code\Murali\Lox\Lox.Tests\Examples\InvalidCharacters.lox" });
+			Program.Main(new[] { @"C:\Code\Murali\Lox\Lox.Tests\Examples\InvalidCharacters.lox" });
 		} //ncrunch: no coverage
 		catch (AggregateException ex)
 		{
