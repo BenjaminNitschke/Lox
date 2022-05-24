@@ -19,8 +19,7 @@ public sealed class Lox
 
 	private static void Run(string code, string filePath = "")
 	{
-		foreach (var token in new Scanner(code, filePath).Tokens)
-			Console.WriteLine(token);
+		var expression = new Parser(new Scanner(code, filePath).Tokens);
 	}
 
 	private static void RunPrompt()

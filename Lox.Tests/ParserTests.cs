@@ -5,6 +5,17 @@ namespace Lox.Tests;
 
 public sealed class ParserTests
 {
+	[TestCase("/ 2 30")]
+	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<Parser.UnknownExpression>());
+
+	[Test]
+	public void ParseUnknownExpression() =>
+		Assert.That(() => GetParser("/"), Throws.InstanceOf<Parser.UnknownExpression>());
+
+	[Test]
+	public void ParseMissingClosingParenthesisGroupingExpression() =>
+		Assert.That(() => GetParser("(a + b"), Throws.InstanceOf<Parser.MissingClosingParenthesis>());
+
 	[TestCase("false", "False", TokenType.False)]
 	[TestCase("true", "True", TokenType.True)]
 	[TestCase("nil", null, TokenType.Nil)]
@@ -67,12 +78,23 @@ public sealed class ParserTests
 			Is.EqualTo(expectedNumberOfExpressions));
 	}
 
-	[TestCase("/ 2 30")]
-	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<Parser.UnknownExpression>());
+	[Test]
+	public void ParseInvalidTargetAssignmentExpression() =>
+		Assert.That(() => GetParser("1 = b"), Throws.InstanceOf<Parser.InvalidAssignmentTarget>());
 
 	[Test]
-	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/"), Throws.InstanceOf<Parser.UnknownExpression>());
+	public void ParseAssignmentExpression()
+	{
+		var parser = GetParser("a = b");
+		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.AssignmentExpression>());
+	}
+
+	[Test]
+	public void ParseGroupingExpression()
+	{
+		var parser = GetParser("(a + b)");
+		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.GroupingExpression>());
+	}
 
 	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);
 

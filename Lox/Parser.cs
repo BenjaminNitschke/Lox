@@ -11,11 +11,34 @@ public sealed class Parser
 	private readonly IReadOnlyList<Token> tokens;
 	public IReadOnlyList<Expression> Expressions => expressions;
 	private readonly List<Expression> expressions;
-	private List<Expression> Parse() => new() { ParseEqualityExpression() };
+	private List<Expression> Parse() => new() { ParseExpression() };
 	private bool IsAtEnd() => Peek().Type == TokenType.Eof;
 	private Token Peek() => tokens.ElementAt(currentTokenCount);
 	private Token Previous() => tokens.ElementAt(currentTokenCount - 1);
 	private int currentTokenCount;
+	private Expression ParseExpression() => ParseAssignmentExpression();
+
+	private Expression ParseAssignmentExpression()
+	{
+		var expression = ParseEqualityExpression();
+		if (Match(TokenType.Equal))
+		{
+			var equals = Previous();
+			var value = ParseAssignmentExpression();
+			if (expression is Expression.VariableExpression variableExpression)
+			{
+				var name = variableExpression.name;
+				return new Expression.AssignmentExpression(name, value);
+			}
+			throw new InvalidAssignmentTarget(equals);
+		}
+		return expression;
+	}
+
+	public class InvalidAssignmentTarget : Exception
+	{
+		public InvalidAssignmentTarget(Token token) : base(token.Type.ToString()) { }
+	}
 
 	private Expression ParseEqualityExpression()
 	{
@@ -39,8 +62,8 @@ public sealed class Parser
 	{
 		var expression = ParseFactorExpressions();
 		while (Match(TokenType.Plus, TokenType.Minus))
-			expression = new Expression.BinaryExpression(leftExpression: expression,
-				operatorToken: Previous(), rightExpression: ParseFactorExpressions());
+			expression = new Expression.BinaryExpression(expression,
+				Previous(), ParseFactorExpressions());
 		return expression;
 	}
 
@@ -48,16 +71,17 @@ public sealed class Parser
 	{
 		var expression = ParseUnaryExpressions();
 		while (Match(TokenType.Slash, TokenType.Star))
-			expression = new Expression.BinaryExpression(leftExpression: expression,
-				operatorToken: Previous(), rightExpression: ParseUnaryExpressions());
+			expression = new Expression.BinaryExpression(expression,
+				Previous(), ParseUnaryExpressions());
 		return expression;
 	}
 
 	private Expression ParseUnaryExpressions() =>
 		Match(TokenType.Bang, TokenType.Minus)
-			? new Expression.UnaryExpression(operatorToken: Previous(), rightExpression: ParseUnaryExpressions())
+			? new Expression.UnaryExpression(Previous(), ParseUnaryExpressions())
 			: ParsePrimaryExpressions();
 
+	// ReSharper disable once MethodTooLong
 	private Expression ParsePrimaryExpressions()
 	{
 		if (Match(TokenType.False))
@@ -68,7 +92,42 @@ public sealed class Parser
 			return new Expression.LiteralExpression(null, Previous());
 		if (Match(TokenType.Number, TokenType.String))
 			return new Expression.LiteralExpression(Previous().Literal, Previous());
+		if (Match(TokenType.Identifier))
+			return new Expression.VariableExpression(Previous());
+		if (ParseGroupingExpression(out var groupingExpression))
+			return groupingExpression;
 		throw new UnknownExpression(Peek());
+	}
+
+	private bool ParseGroupingExpression(out Expression groupingExpression)
+	{
+		groupingExpression = null!;
+		if (Match(TokenType.LeftParenthesis))
+		{
+			var expression = ParseExpression();
+			Consume(TokenType.RightParenthesis);
+			{
+				groupingExpression = new Expression.GroupingExpression(expression);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Token Consume(TokenType type)
+	{
+		if (Check(type))
+			return Advance();
+		throw type switch
+		{
+			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),
+			_ => new NotImplementedException() //ncrunch: no coverage
+		};
+	}
+
+	public class MissingClosingParenthesis : Exception
+	{
+		public MissingClosingParenthesis(Token token) : base(token.Type.ToString()) { }
 	}
 
 	public class UnknownExpression : Exception
@@ -94,10 +153,10 @@ public sealed class Parser
 		return Peek().Type == tokenType;
 	}
 
-	private void Advance()
+	private Token Advance()
 	{
 		if (!IsAtEnd())
 			currentTokenCount++;
-		Previous();
+		return Previous();
 	}
 }

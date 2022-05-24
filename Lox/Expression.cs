@@ -39,4 +39,28 @@ public abstract class Expression
 			LeftExpression = leftExpression;
 		}
 	}
+
+	public class VariableExpression : Expression
+	{
+		public readonly Token name;
+		public VariableExpression(Token name) => this.name = name;
+	}
+
+	public class AssignmentExpression : Expression
+	{
+		public readonly Token name;
+		public readonly Expression value;
+
+		public AssignmentExpression(Token name, Expression value)
+		{
+			this.name = name;
+			this.value = value;
+		}
+	}
+
+	public class GroupingExpression : Expression
+	{
+		public readonly Expression expression;
+		public GroupingExpression(Expression expression) => this.expression = expression;
+	}
 }
