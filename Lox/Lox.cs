@@ -1,6 +1,6 @@
 ﻿namespace Lox;
 
-public sealed class Program
+public sealed class Lox
 {
 	public static void Main(string[] args)
 	{

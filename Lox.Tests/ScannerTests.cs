@@ -102,15 +102,15 @@ public sealed class ScannerTests
 print $
 #
 &
-||", @"C:\Code\Murali\Lox\Lox.Tests\Examples\HelloWorld.lox");
+||");
 		} //ncrunch: no coverage
 		catch (AggregateException ex)
 		{
 			Assert.That(ex.InnerExceptions[0], Is.InstanceOf<Scanner.UnexpectedCharacter>());
-			Assert.That(ex.InnerExceptions[0].Message, Is.EqualTo(@"$\n   :at HelloWorld.lox in C:\Code\Murali\Lox\Lox.Tests\Examples\HelloWorld.lox :line 2"));
-			Assert.That(ex.InnerExceptions[1].Message, Is.EqualTo(@"#\n   :at HelloWorld.lox in C:\Code\Murali\Lox\Lox.Tests\Examples\HelloWorld.lox :line 3"));
-			Assert.That(ex.InnerExceptions[2].Message, Is.EqualTo(@"&\n   :at HelloWorld.lox in C:\Code\Murali\Lox\Lox.Tests\Examples\HelloWorld.lox :line 4"));
-			Assert.That(ex.InnerExceptions[3].Message, Is.EqualTo(@"|\n   :at HelloWorld.lox in C:\Code\Murali\Lox\Lox.Tests\Examples\HelloWorld.lox :line 5"));
+			Assert.That(ex.InnerExceptions[0].Message, Is.EqualTo(@"$ in  :line 2"));
+			Assert.That(ex.InnerExceptions[1].Message, Is.EqualTo(@"# in  :line 3"));
+			Assert.That(ex.InnerExceptions[2].Message, Is.EqualTo(@"& in  :line 4"));
+			Assert.That(ex.InnerExceptions[3].Message, Is.EqualTo(@"| in  :line 5"));
 		}
 	}
 }
