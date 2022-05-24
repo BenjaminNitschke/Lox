@@ -20,6 +20,7 @@ public sealed class Scanner
 			}
 		}
 		if (exceptions.Count > 0)
+			// ReSharper disable once UnthrowableException
 			throw new AggregateException(exceptions);
 		tokens.Add(new Token(TokenType.Eof, "", null, line));
 	}
