@@ -15,11 +15,11 @@ public sealed class Program
 			RunPrompt();
 	}
 
-	private static void RunFile(string filename) => Run(File.ReadAllText(filename));
+	private static void RunFile(string filename) => Run(File.ReadAllText(filename), filename);
 
-	private static void Run(string code)
+	private static void Run(string code, string filePath = "")
 	{
-		foreach (var token in new Scanner(code).Tokens)
+		foreach (var token in new Scanner(code, filePath).Tokens)
 			Console.WriteLine(token);
 	}
 

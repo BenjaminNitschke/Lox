@@ -2,9 +2,10 @@
 
 public sealed class Scanner
 {
-	public Scanner(string code)
+	public Scanner(string code, string filePath = "")
 	{
 		this.code = code;
+		this.filePath = filePath;
 		var exceptions = new List<Exception>();
 		while (!IsAtEnd())
 		{
@@ -24,6 +25,7 @@ public sealed class Scanner
 	}
 
 	private readonly string code;
+	private readonly string filePath;
 	private bool IsAtEnd() => current >= code.Length;
 	private readonly int startTokenPosition;
 	private int current;
@@ -36,13 +38,13 @@ public sealed class Scanner
 		var c = Advance();
 		_ = GetNextTokenSingleCharacter(c) ?? GetNextTokenComparisons(c) ??
 			GetCommentOrSlash(c) ?? IgnoreWhiteSpace(c) ?? HandleNewLine(c) ??
-			HandleString(c) ?? HandleDigit(c) ?? throw new UnexpectedCharacter(line, c);
+			HandleString(c) ?? HandleDigit(c) ?? throw new UnexpectedCharacter(c, line, filePath);
 	}
 
-	public sealed class UnexpectedCharacter : Exception
+	public sealed class UnexpectedCharacter : ScanningFailed
 	{
-		public UnexpectedCharacter(int fileLineNumber, char character) :
-			base(character + ": line " + fileLineNumber) { }
+		public UnexpectedCharacter(char character, int fileLineNumber, string filePath) :
+			base(character.ToString(), fileLineNumber, filePath) { }
 	}
 
 	// ReSharper disable once CyclomaticComplexity
