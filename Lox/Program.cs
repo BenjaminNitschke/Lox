@@ -7,7 +7,7 @@ public sealed class Program
 		if (args.Length > 1)
 		{
 			Console.WriteLine("Usage: Lox [script]");
-			Environment.Exit(64);
+			System.Environment.Exit(64);
 		}
 		else if (args.Length == 1)
 			RunFile(args[0]);
@@ -19,7 +19,7 @@ public sealed class Program
 
 	private static void Run(string code, string filePath = "")
 	{
-		var unused = new Parser(new Scanner(code, filePath).Tokens).Expressions;
+		var unused = new Parser(new Scanner(code, filePath).Tokens).Parse();
 	}
 
 	private static void RunPrompt()

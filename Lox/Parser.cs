@@ -5,17 +5,76 @@ public sealed class Parser
 	public Parser(IReadOnlyList<Token> tokens)
 	{
 		this.tokens = tokens;
-		expressions = Parse();
+		expressions = new List<Expression> { ParseExpression() };
 	}
 
 	private readonly IReadOnlyList<Token> tokens;
 	public IReadOnlyList<Expression> Expressions => expressions;
 	private readonly List<Expression> expressions;
-	private List<Expression> Parse() => new() { ParseExpression() };
 	private bool IsAtEnd() => Peek().Type == TokenType.Eof;
 	private Token Peek() => tokens.ElementAt(currentTokenCount);
 	private Token Previous() => tokens.ElementAt(currentTokenCount - 1);
 	private int currentTokenCount;
+
+	public List<Statement> Parse()
+	{
+		var statements = new List<Statement>();
+		while (!IsAtEnd())
+		{
+			var statement = Declaration();
+			statements.Add(statement);
+		}
+		return statements;
+	}
+
+	private Statement Declaration() =>
+		Match(TokenType.Var)
+			? ParseVariableDeclarationStatement()
+			: ParseStatement();
+
+	private Statement ParseVariableDeclarationStatement()
+	{
+		var name = Consume(TokenType.Identifier);
+		Expression? initializer = null;
+		if (Match(TokenType.Equal))
+			initializer = ParseExpression();
+		Consume(TokenType.Semicolon);
+		return new Statement.VariableStatement(name, initializer);
+	}
+
+	private Statement ParseStatement() =>
+		Match(TokenType.Print)
+			? ParsePrintStatement()
+			: Match(TokenType.LeftBrace)
+				? new Statement.BlockStatement(ParseBlockStatement())
+				: ParseExpressionStatement();
+
+	private Statement ParsePrintStatement()
+	{
+		var value = ParseExpression();
+		Consume(TokenType.Semicolon);
+		return new Statement.PrintStatement(value);
+	}
+
+	private List<Statement> ParseBlockStatement()
+	{
+		List<Statement> statements = new();
+		while (!Check(TokenType.RightBrace) && !IsAtEnd())
+		{
+			var stmt = Declaration();
+			statements.Add(stmt);
+		}
+		Consume(TokenType.RightBrace);
+		return statements;
+	}
+
+	private Statement ParseExpressionStatement()
+	{
+		var expression = ParseExpression();
+		Consume(TokenType.Semicolon);
+		return new Statement.ExpressionStatement(expression);
+	}
+
 	private Expression ParseExpression() => ParseAssignmentExpression();
 
 	private Expression ParseAssignmentExpression()
@@ -114,18 +173,25 @@ public sealed class Parser
 		return false;
 	}
 
-	private void Consume(TokenType type)
+	private Token Consume(TokenType type)
 	{
 		if (Check(type))
 		{
-			Advance();
-			return;
+			return Advance();
 		}
 		throw type switch
 		{
 			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),
+			TokenType.Var => new MissingVariableName(Peek()),
+			TokenType.Semicolon => new MissingSemicolon(Peek()),
+			TokenType.RightBrace => new MissingRightBrace(Peek()),
 			_ => new NotImplementedException() //ncrunch: no coverage
 		};
+	}
+
+	public class MissingSemicolon : Exception
+	{
+		public MissingSemicolon(Token token) : base(token.Type.ToString()) { }
 	}
 
 	public class MissingClosingParenthesis : Exception
@@ -136,6 +202,16 @@ public sealed class Parser
 	public class UnknownExpression : Exception
 	{
 		public UnknownExpression(Token token) : base(token.Type.ToString()) { }
+	}
+
+	public class MissingVariableName : Exception
+	{
+		public MissingVariableName(Token token) : base(token.Type.ToString()) { }
+	}
+
+	public class MissingRightBrace : Exception
+	{
+		public MissingRightBrace(Token token) : base(token.Type.ToString()) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)
@@ -156,10 +232,13 @@ public sealed class Parser
 		return Peek().Type == tokenType;
 	}
 
-	private void Advance()
+	private Token Advance()
 	{
 		if (!IsAtEnd())
 			currentTokenCount++;
-		Previous();
+		return Previous();
 	}
 }
+
+
+

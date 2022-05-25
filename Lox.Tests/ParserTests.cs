@@ -96,6 +96,12 @@ public sealed class ParserTests
 		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.GroupingExpression>());
 	}
 
+	[Test]
+	public void ParseStatements()
+	{
+		var statements = GetParser("Print 5 + 5;").Parse();
+	}
+
 	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);
 
 	private static int GetExpressionsCount(Expression expression) =>

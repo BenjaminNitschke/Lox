@@ -2,6 +2,8 @@
 
 public abstract class Expression
 {
+	public abstract T Accept<T>(ExpressionVisitor<T> visitor);
+
 	public class LiteralExpression : Expression
 	{
 		public object? Literal { get; }
@@ -12,6 +14,8 @@ public abstract class Expression
 			Literal = value;
 			TokenType = tokenType;
 		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitLiteralExpression(this);
 	}
 
 	public class UnaryExpression : Expression
@@ -24,6 +28,8 @@ public abstract class Expression
 			OperatorToken = operatorToken;
 			RightExpression = rightExpression;
 		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitUnaryExpression(this);
 	}
 
 	public class BinaryExpression : Expression
@@ -38,12 +44,15 @@ public abstract class Expression
 			RightExpression = rightExpression;
 			LeftExpression = leftExpression;
 		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitBinaryExpression(this);
 	}
 
 	public class VariableExpression : Expression
 	{
 		public readonly Token name;
 		public VariableExpression(Token name) => this.name = name;
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitVariableExpression(this);
 	}
 
 	public class AssignmentExpression : Expression
@@ -56,11 +65,24 @@ public abstract class Expression
 			this.name = name;
 			this.value = value;
 		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitAssignmentExpression(this);
 	}
 
 	public class GroupingExpression : Expression
 	{
 		public readonly Expression expression;
 		public GroupingExpression(Expression expression) => this.expression = expression;
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitGroupingExpression(this);
 	}
+}
+
+public interface ExpressionVisitor<out T>
+{
+	T VisitLiteralExpression(Expression.LiteralExpression literal);
+	T VisitGroupingExpression(Expression.GroupingExpression groupingExpression);
+	T VisitBinaryExpression(Expression.BinaryExpression binaryExpression);
+	T VisitUnaryExpression(Expression.UnaryExpression unaryExpression);
+	T VisitVariableExpression(Expression.VariableExpression variableExpression);
+	T VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression);
 }
