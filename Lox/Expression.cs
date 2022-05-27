@@ -75,6 +75,21 @@ public abstract class Expression
 		public GroupingExpression(Expression expression) => this.expression = expression;
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitGroupingExpression(this);
 	}
+
+	public class LogicalExpression : Expression
+	{
+		public LogicalExpression(Expression left, Expression right, Token operatorToken)
+		{
+			this.left = left;
+			this.right = right;
+			this.operatorToken = operatorToken;
+		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitLogicalExpression(this);
+		public readonly Expression left;
+		public readonly Token operatorToken;
+		public readonly Expression right;
+	}
 }
 
 public interface ExpressionVisitor<out T>
@@ -85,4 +100,5 @@ public interface ExpressionVisitor<out T>
 	T VisitUnaryExpression(Expression.UnaryExpression unaryExpression);
 	T VisitVariableExpression(Expression.VariableExpression variableExpression);
 	T VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression);
+	T VisitLogicalExpression(Expression.LogicalExpression logicalExpression);
 }

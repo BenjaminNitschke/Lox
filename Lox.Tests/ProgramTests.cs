@@ -23,4 +23,16 @@ public sealed class ProgramTests
 			Assert.That(ex.InnerExceptions[3].Message, Contains.Substring(@"|\n   :at InvalidCharacters.lox in"));
 		}
 	}
+
+	[Test]
+	public void PrintFibonacciNumbersIn10000()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\Fibonacci.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"0\r\n1\r\n1\r\n2\r\n3\r\n5\r\n8\r\n13\r\n21\r\n34\r\n55\r\n89\r\n144\r\n233\r\n377\r\n610\r\n987\r\n1597\r\n2584\r\n4181\r\n6765\r\n"));
+	}
 }

@@ -1,5 +1,6 @@
 ﻿namespace Lox;
 
+// ReSharper disable once ClassTooBig
 public sealed class Parser
 {
 	public Parser(IReadOnlyList<Token> tokens) => this.tokens = tokens;
@@ -37,17 +38,106 @@ public sealed class Parser
 	}
 
 	private Statement ParseStatement() =>
-		Match(TokenType.Print)
-			? ParsePrintStatement()
-			: Match(TokenType.LeftBrace)
-				? new Statement.BlockStatement(ParseBlockStatement())
-				: ParseExpressionStatement();
+		Match(TokenType.For)
+			? ParseForStatement()
+			: Match(TokenType.If)
+				? ParseIfStatement()
+				: Match(TokenType.Print)
+					? ParsePrintStatement()
+					: Match(TokenType.While)
+						? ParseWhileStatement()
+						: Match(TokenType.LeftBrace)
+							? new Statement.BlockStatement(ParseBlockStatement())
+							: ParseExpressionStatement();
+
+	private Statement ParseForStatement()
+	{
+		Consume(TokenType.LeftParenthesis, "Expect '(' after for");
+		var initializer = GetLoopInitializer();
+		var condition = GetLoopCondition();
+		var incrementer = GetLoopIncrementer();
+		var body = ParseStatement();
+		body = AddIncrementerBodyStatements(incrementer, body);
+		condition ??=
+			new Expression.LiteralExpression(true, new Token(TokenType.True, "True", "True", 0));
+		body = new Statement.WhileStatement(condition, body);
+		body = AddInitializerBodyStatements(initializer, body);
+		return body;
+	}
+
+	private static Statement AddInitializerBodyStatements(Statement? initializer, Statement body)
+	{
+		if (initializer != null)
+			body = new Statement.BlockStatement(new List<Statement> { initializer, body });
+		return body;
+	}
+
+	private static Statement AddIncrementerBodyStatements(Expression? increment, Statement body)
+	{
+		if (increment != null)
+			body = new Statement.BlockStatement(new List<Statement>
+			{
+				body, new Statement.ExpressionStatement(increment)
+			});
+		return body;
+	}
+
+	private Expression? GetLoopIncrementer()
+	{
+		Expression? increment = null;
+		if (!Check(TokenType.RightParenthesis))
+			increment = ParseExpression();
+		Consume(TokenType.RightParenthesis, "Expect ')' after for clauses");
+		return increment;
+	}
+
+	private Expression? GetLoopCondition()
+	{
+		Expression? condition = null;
+		if (!Check(TokenType.Semicolon))
+			condition = ParseExpression();
+		Consume(TokenType.Semicolon, "Expect ';' after loop condition");
+		return condition;
+	}
+
+	private Statement? GetLoopInitializer()
+	{
+		Statement? initializer;
+		if (Match(TokenType.Semicolon))
+			initializer = null;
+		else if (Match(TokenType.Var))
+			initializer = ParseVariableDeclarationStatement();
+		else
+			initializer = ParseExpressionStatement();
+		return initializer;
+	}
+
+	private Statement ParseIfStatement()
+	{
+		Consume(TokenType.LeftParenthesis);
+		var conditionExpression = ParseExpression();
+		Consume(TokenType.RightParenthesis);
+		var thenStatement = ParseStatement();
+		Statement? elseStatement = null;
+		if (Match(TokenType.Else))
+			elseStatement = ParseStatement();
+		return new Statement.IfStatement(conditionExpression, thenStatement, elseStatement);
+	}
 
 	private Statement ParsePrintStatement()
 	{
 		var value = ParseExpression();
 		Consume(TokenType.Semicolon);
 		return new Statement.PrintStatement(value);
+	}
+
+	private Statement ParseWhileStatement()
+	{
+		Consume(TokenType.LeftParenthesis, "Expect '(' after while");
+		var condition = ParseExpression();
+		Consume(TokenType.RightParenthesis, "Expect ')' after while condition");
+		var body = ParseStatement();
+		return new Statement.WhileStatement(condition, body);
 	}
 
 	private List<Statement> ParseBlockStatement()
@@ -73,7 +163,7 @@ public sealed class Parser
 
 	private Expression ParseAssignmentExpression()
 	{
-		var expression = ParseEqualityExpression();
+		var expression = ParseOrExpression();
 		if (Match(TokenType.Equal))
 		{
 			var equals = Previous();
@@ -84,6 +174,30 @@ public sealed class Parser
 				return new Expression.AssignmentExpression(name, value);
 			}
 			throw new InvalidAssignmentTarget(equals);
+		}
+		return expression;
+	}
+
+	private Expression ParseOrExpression()
+	{
+		var expression = ParseAndExpression();
+		while (Match(TokenType.Or))
+		{
+			var operatorToken = Previous();
+			var right = ParseAndExpression();
+			expression = new Expression.LogicalExpression(expression, right, operatorToken);
+		}
+		return expression;
+	}
+
+	private Expression ParseAndExpression()
+	{
+		var expression = ParseEqualityExpression();
+		while (Match(TokenType.And))
+		{
+			var operatorToken = Previous();
+			var right = ParseEqualityExpression();
+			expression = new Expression.LogicalExpression(expression, right, operatorToken);
 		}
 		return expression;
 	}
@@ -167,7 +281,7 @@ public sealed class Parser
 		return false;
 	}
 
-	private Token Consume(TokenType type)
+	private Token Consume(TokenType type, string message = "")
 	{
 		if (Check(type))
 			return Advance();
@@ -177,33 +291,39 @@ public sealed class Parser
 			TokenType.Identifier => new MissingVariableName(Peek()),
 			TokenType.Semicolon => new MissingSemicolon(Peek()),
 			TokenType.RightBrace => new MissingRightBrace(Peek()),
-			_ => new NotImplementedException() //ncrunch: no coverage
+			TokenType.LeftParenthesis => new MissingLeftParenthesis(Peek(), message),
+			_ => new InvalidOperationException() //ncrunch: no coverage
 		};
 	}
 
-	public class MissingSemicolon : Exception
+	public sealed class MissingSemicolon : Exception
 	{
 		public MissingSemicolon(Token token) : base(token.Type.ToString()) { }
 	}
 
-	public class MissingClosingParenthesis : Exception
+	public sealed class MissingClosingParenthesis : Exception
 	{
 		public MissingClosingParenthesis(Token token) : base(token.Type.ToString()) { }
 	}
 
-	public class UnknownExpression : Exception
+	public sealed class UnknownExpression : Exception
 	{
 		public UnknownExpression(Token token) : base(token.Type.ToString()) { }
 	}
 
-	public class MissingVariableName : Exception
+	public sealed class MissingVariableName : Exception
 	{
 		public MissingVariableName(Token token) : base(token.Type.ToString()) { }
 	}
 
-	public class MissingRightBrace : Exception
+	public sealed class MissingRightBrace : Exception
 	{
 		public MissingRightBrace(Token token) : base(token.Type.ToString()) { }
+	}
+
+	public sealed class MissingLeftParenthesis : Exception
+	{
+		public MissingLeftParenthesis(Token token, string message = "") : base(token.Type + message) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)

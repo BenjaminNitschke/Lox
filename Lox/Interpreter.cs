@@ -168,11 +168,41 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 	public object VisitVariableExpression(Expression.VariableExpression variableExpression) =>
 		environment.Get(variableExpression.name);
 
+	public object VisitLogicalExpression(Expression.LogicalExpression logicalExpression)
+	{
+		var leftExpressionValue = EvaluateExpression(logicalExpression.left);
+		if (logicalExpression.operatorToken.Type == TokenType.Or)
+		{
+			if (IsTruthy(leftExpressionValue))
+				return leftExpressionValue;
+		}
+		else
+		{
+			if (!IsTruthy(leftExpressionValue))
+				return leftExpressionValue;
+		}
+		return EvaluateExpression(logicalExpression.right);
+	}
+
 	public object VisitPrintStatement(Statement.PrintStatement printStatement)
 	{
 		var value = EvaluateExpression(printStatement.expression);
 		Console.Out.WriteLine(Stringify(value));
 		return value;
+	}
+
+	private static string Stringify(object resultObject)
+	{
+		switch (resultObject)
+		{
+		case double:
+		{
+			var text = resultObject.ToString()!;
+			return text;
+		}
+		default:
+			return resultObject.ToString()!;
+		}
 	}
 
 	public object VisitExpressionStatement(Statement.ExpressionStatement expressionStatement) =>
@@ -208,17 +238,19 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		}
 	}
 
-	private static string Stringify(object resultObject)
+	public object VisitIfStatement(Statement.IfStatement ifStatement)
 	{
-		switch (resultObject)
-		{
-		case double:
-		{
-			var text = resultObject.ToString()!;
-			return text;
-		}
-		default:
-			return resultObject.ToString()!;
-		}
+		if (IsTruthy(EvaluateExpression(ifStatement.condition)))
+			Execute(ifStatement.thenStatement);
+		else if (ifStatement.elseStatement != null)
+			Execute(ifStatement.elseStatement);
+		return new object();
+	}
+
+	public object VisitWhileStatement(Statement.WhileStatement whileStatement)
+	{
+		while (IsTruthy(EvaluateExpression(whileStatement.condition)))
+			Execute(whileStatement.bodyStatement);
+		return new object();
 	}
 }
