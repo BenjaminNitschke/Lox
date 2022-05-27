@@ -2,9 +2,8 @@
 
 namespace Lox;
 
-// ReSharper disable once ClassCanBeSealed.Global
 // ReSharper disable once ClassTooBig
-public class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
+public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 {
 	private Environment environment = new();
 
