@@ -6,15 +6,27 @@ namespace Lox.Tests;
 public sealed class ParserTests
 {
 	[TestCase("/ 2 30")]
-	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code), Throws.InstanceOf<Parser.UnknownExpression>());
+	public void ParseInvalidFactorBinaryExpression(string code) => Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
 
 	[Test]
 	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/"), Throws.InstanceOf<Parser.UnknownExpression>());
+		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
 
 	[Test]
 	public void ParseMissingClosingParenthesisGroupingExpression() =>
-		Assert.That(() => GetParser("(a + b"), Throws.InstanceOf<Parser.MissingClosingParenthesis>());
+		Assert.That(() => GetParser("(a + b").Parse(), Throws.InstanceOf<Parser.MissingClosingParenthesis>());
+
+	[Test]
+	public void ParseMissingVariableNameExpression() =>
+		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<Parser.MissingVariableName>());
+
+	[Test]
+	public void ParseMissingSemicolonExpression() =>
+		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<Parser.MissingSemicolon>());
+
+	[Test]
+	public void ParseMissingBrace() =>
+		Assert.That(() => GetParser("{ a + b; ").Parse(), Throws.InstanceOf<Parser.MissingRightBrace>());
 
 	[TestCase("false", "False", TokenType.False)]
 	[TestCase("true", "True", TokenType.True)]
@@ -23,11 +35,10 @@ public sealed class ParserTests
 	public void ParseSinglePrimaryExpression(string code, string expectedValue,
 		TokenType expectedTokenType)
 	{
-		var parser = new Parser(new Scanner(code).Tokens);
-		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.LiteralExpression>());
-		var literalExpression = parser.Expressions.FirstOrDefault() as Expression.LiteralExpression;
-		Assert.That(literalExpression?.Literal?.ToString(), Is.EqualTo(expectedValue));
-		Assert.That(literalExpression?.TokenType.Type, Is.EqualTo(expectedTokenType));
+		var resultExpression = new Parser(new Scanner(code).Tokens).Expressions.FirstOrDefault() as Expression.LiteralExpression;
+		Assert.That(resultExpression, Is.InstanceOf<Expression.LiteralExpression>());
+		Assert.That(resultExpression?.Literal?.ToString(), Is.EqualTo(expectedValue));
+		Assert.That(resultExpression?.TokenType.Type, Is.EqualTo(expectedTokenType));
 	}
 
 	[TestCase("!false", "!", "False")]
@@ -36,11 +47,10 @@ public sealed class ParserTests
 	public void ParseSingleUnaryExpressions(string code, string expectedOperator,
 		string expectedSecondExpressionValue)
 	{
-		var parser = GetParser(code);
-		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.UnaryExpression>());
-		var unaryExpression = parser.Expressions.FirstOrDefault() as Expression.UnaryExpression;
-		Assert.That(unaryExpression?.OperatorToken.Lexeme, Is.EqualTo(expectedOperator));
-		var literalExpression = unaryExpression?.RightExpression as Expression.LiteralExpression;
+		var resultExpression = GetParser(code).Expressions.FirstOrDefault() as Expression.UnaryExpression;
+		Assert.That(resultExpression, Is.InstanceOf<Expression.UnaryExpression>());
+		Assert.That(resultExpression?.OperatorToken.Lexeme, Is.EqualTo(expectedOperator));
+		var literalExpression = resultExpression?.RightExpression as Expression.LiteralExpression;
 		Assert.That(literalExpression?.Literal?.ToString(),
 			Is.EqualTo(expectedSecondExpressionValue));
 	}
@@ -57,9 +67,9 @@ public sealed class ParserTests
 	public void ParseSingleBinaryExpression(string code, string expectedLeftExpression,
 		string expectedOperator, string expectedRightExpression)
 	{
-		var parser = GetParser(code);
-		Assert.That(parser.Expressions.FirstOrDefault(), Is.InstanceOf<Expression.BinaryExpression>());
-		var binaryExpression = parser.Expressions.FirstOrDefault() as Expression.BinaryExpression;
+		var resultExpressions = GetParser(code).Expressions;
+		Assert.That(resultExpressions.FirstOrDefault(), Is.InstanceOf<Expression.BinaryExpression>());
+		var binaryExpression = resultExpressions.FirstOrDefault() as Expression.BinaryExpression;
 		Assert.That(binaryExpression?.LeftExpression, Is.InstanceOf<Expression.LiteralExpression>());
 		var leftExpression = binaryExpression?.LeftExpression as Expression.LiteralExpression;
 		Assert.That(leftExpression?.Literal?.ToString(), Is.EqualTo(expectedLeftExpression));
@@ -80,7 +90,7 @@ public sealed class ParserTests
 
 	[Test]
 	public void ParseInvalidTargetAssignmentExpression() =>
-		Assert.That(() => GetParser("1 = b"), Throws.InstanceOf<Parser.InvalidAssignmentTarget>());
+		Assert.That(() => GetParser("1 = b").Parse(), Throws.InstanceOf<Parser.InvalidAssignmentTarget>());
 
 	[Test]
 	public void ParseAssignmentExpression()
@@ -97,9 +107,26 @@ public sealed class ParserTests
 	}
 
 	[Test]
-	public void ParseStatements()
+	public void ParsePrintStatement()
 	{
-		var statements = GetParser("Print 5 + 5;").Parse();
+		var statements = GetParser("print 5;").Parse();
+		Assert.That(statements.Count, Is.EqualTo(1));
+		Assert.That(statements[0], Is.InstanceOf<Statement.PrintStatement>());
+	}
+
+	[Test]
+	public void ParseVariableDeclarationStatement()
+	{
+		var statements = GetParser("var a =5;").Parse();
+		Assert.That(statements.Count, Is.EqualTo(1));
+		Assert.That(statements[0], Is.InstanceOf<Statement.VariableStatement>());
+	}
+
+	[Test]
+	public void ParseBlockStatement()
+	{
+		var blockStatement = GetParser("{ var a =5; \n print a; }").Parse()[0] as Statement.BlockStatement;
+		Assert.That(blockStatement!.statements.Count, Is.EqualTo(2));
 	}
 
 	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);

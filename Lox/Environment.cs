@@ -9,12 +9,14 @@ public class Environment
 
 	public object Get(Token name)
 	{
-		if (values.ContainsKey(name.Lexeme)) return values[name.Lexeme];
-		if (enclosing != null) return enclosing.Get(name);
+		if (values.ContainsKey(name.Lexeme))
+			return values[name.Lexeme];
+		if (enclosing != null)
+			return enclosing.Get(name);
 		throw new UndefinedVariable(name);
 	}
 
-	private sealed class UndefinedVariable : Exception
+	public sealed class UndefinedVariable : Exception
 	{
 		public UndefinedVariable(Token name) : base(name.Lexeme) { }
 	}
@@ -37,10 +39,9 @@ public class Environment
 			throw new DuplicateVariableName(name);
 		values.Add(name, value);
 	}
-}
 
-public class DuplicateVariableName : Exception
-{
-	public DuplicateVariableName(string name) : base(name) { }
+	public sealed class DuplicateVariableName : Exception
+	{
+		public DuplicateVariableName(string name) : base(name) { }
+	}
 }
-

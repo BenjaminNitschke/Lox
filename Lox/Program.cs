@@ -2,6 +2,8 @@
 
 public sealed class Program
 {
+	private static readonly Interpreter Interpreter = new();
+
 	public static void Main(string[] args)
 	{
 		if (args.Length > 1)
@@ -19,7 +21,8 @@ public sealed class Program
 
 	private static void Run(string code, string filePath = "")
 	{
-		var unused = new Parser(new Scanner(code, filePath).Tokens).Parse();
+		var statements = new Parser(new Scanner(code, filePath).Tokens).Parse();
+		Interpreter.Interpret(statements);
 	}
 
 	private static void RunPrompt()

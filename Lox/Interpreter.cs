@@ -2,6 +2,8 @@
 
 namespace Lox;
 
+// ReSharper disable once ClassCanBeSealed.Global
+// ReSharper disable once ClassTooBig
 public class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 {
 	private Environment environment = new();
@@ -157,13 +159,22 @@ public class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 			_ => true
 		};
 
-	public object VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression) =>
-		EvaluateExpression(assignmentExpression.value);
+	public object VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression)
+	{
+		var value = EvaluateExpression(assignmentExpression.value);
+		environment.Assign(assignmentExpression.name, value);
+		return value;
+	}
 
 	public object VisitVariableExpression(Expression.VariableExpression variableExpression) =>
 		environment.Get(variableExpression.name);
 
-	public object VisitPrintStatement(Statement.PrintStatement printStatement) => EvaluateExpression(printStatement.expression);
+	public object VisitPrintStatement(Statement.PrintStatement printStatement)
+	{
+		var value = EvaluateExpression(printStatement.expression);
+		Console.Out.WriteLine(Stringify(value));
+		return value;
+	}
 
 	public object VisitExpressionStatement(Statement.ExpressionStatement expressionStatement) =>
 		EvaluateExpression(expressionStatement.expression);
@@ -171,7 +182,8 @@ public class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 	public object VisitVariableStatement(Statement.VariableStatement variableStatement)
 	{
 		var value = new object();
-		if (variableStatement.initializer != null) value = EvaluateExpression(variableStatement.initializer);
+		if (variableStatement.initializer != null)
+			value = EvaluateExpression(variableStatement.initializer);
 		environment.Define(variableStatement.name.Lexeme, value);
 		return new object();
 	}
@@ -189,13 +201,25 @@ public class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 		{
 			environment = innerEnvironment;
 			foreach (var statement in statements)
-			{
 				Execute(statement);
-			}
 		}
 		finally
 		{
 			environment = previous;
+		}
+	}
+
+	private static string Stringify(object resultObject)
+	{
+		switch (resultObject)
+		{
+		case double:
+		{
+			var text = resultObject.ToString()!;
+			return text;
+		}
+		default:
+			return resultObject.ToString()!;
 		}
 	}
 }

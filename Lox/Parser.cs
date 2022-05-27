@@ -2,15 +2,9 @@
 
 public sealed class Parser
 {
-	public Parser(IReadOnlyList<Token> tokens)
-	{
-		this.tokens = tokens;
-		expressions = new List<Expression> { ParseExpression() };
-	}
-
+	public Parser(IReadOnlyList<Token> tokens) => this.tokens = tokens;
 	private readonly IReadOnlyList<Token> tokens;
-	public IReadOnlyList<Expression> Expressions => expressions;
-	private readonly List<Expression> expressions;
+	public IReadOnlyList<Expression> Expressions => new List<Expression> { ParseExpression() };
 	private bool IsAtEnd() => Peek().Type == TokenType.Eof;
 	private Token Peek() => tokens.ElementAt(currentTokenCount);
 	private Token Previous() => tokens.ElementAt(currentTokenCount - 1);
@@ -176,13 +170,11 @@ public sealed class Parser
 	private Token Consume(TokenType type)
 	{
 		if (Check(type))
-		{
 			return Advance();
-		}
 		throw type switch
 		{
 			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),
-			TokenType.Var => new MissingVariableName(Peek()),
+			TokenType.Identifier => new MissingVariableName(Peek()),
 			TokenType.Semicolon => new MissingSemicolon(Peek()),
 			TokenType.RightBrace => new MissingRightBrace(Peek()),
 			_ => new NotImplementedException() //ncrunch: no coverage
