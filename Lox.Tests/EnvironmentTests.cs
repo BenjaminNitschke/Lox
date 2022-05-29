@@ -2,7 +2,7 @@
 
 namespace Lox.Tests;
 
-public class EnvironmentTests
+public sealed class EnvironmentTests
 {
 	[Test]
 	public void AssignVariableToEnclosedEnvironment()
