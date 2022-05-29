@@ -1,6 +1,6 @@
 ﻿namespace Lox;
 
-public class Environment
+public sealed class Environment
 {
 	private readonly Environment? enclosing;
 	private readonly Dictionary<string, object> values = new();
