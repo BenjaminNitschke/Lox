@@ -2,13 +2,19 @@
 {
 	public class Function : Callable
 	{
+		public Function(Statement.FunctionStatement declaration, Environment closure)
+		{
+			this.declaration = declaration;
+			this.closure = closure;
+		}
+
 		private readonly Statement.FunctionStatement declaration;
-		public Function(Statement.FunctionStatement declaration) => this.declaration = declaration;
+		private readonly Environment closure;
 		public int Arity() => declaration.functionParams.Count;
 
 		public object Call(Interpreter interpreter, List<object> arguments)
 		{
-			var environment = new Environment(interpreter.environment);
+			var environment = new Environment(closure);
 			for (var i = 0; i < declaration.functionParams.Count; i++)
 				environment.Define(declaration.functionParams[i].Lexeme, arguments[i]);
 			try

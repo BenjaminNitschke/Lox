@@ -5,7 +5,6 @@ namespace Lox;
 // ReSharper disable once ClassTooBig
 public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 {
-	//public readonly Environment globals = new();
 	public Environment environment = new();
 
 	public void Interpret(List<Statement> statements)
@@ -282,7 +281,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	public object VisitFunctionStatement(Statement.FunctionStatement functionStatement)
 	{
-		var loxFunction = new Function(functionStatement);
+		var loxFunction = new Function(functionStatement, environment);
 		environment.Define(functionStatement.name.Lexeme, loxFunction);
 		return new object();
 	}
