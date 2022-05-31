@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using NUnit.Framework;
-
-namespace Lox.Tests;
+﻿namespace Lox.Tests;
 
 public sealed class ProgramTests
 {

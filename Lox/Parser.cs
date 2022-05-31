@@ -23,9 +23,29 @@ public sealed class Parser
 	}
 
 	private Statement Declaration() =>
-		Match(TokenType.Var)
-			? ParseVariableDeclarationStatement()
-			: ParseStatement();
+		Match(TokenType.Fun)
+			? ParseFunctionStatement("function")
+			: Match(TokenType.Var)
+				? ParseVariableDeclarationStatement()
+				: ParseStatement();
+
+	private Statement.FunctionStatement ParseFunctionStatement(string kind)
+	{
+		var name = Consume(TokenType.Identifier, "Expect " + kind + " name.");
+		Consume(TokenType.LeftParenthesis, "Expect '(' after " + kind + " name.");
+		var parameters = new List<Token>();
+		if (!Check(TokenType.RightParenthesis))
+			do
+			{
+				if (parameters.Count >= 255)
+					throw new ArgumentOutOfRangeException("Cannot have more than 255 arguments for type " + kind);
+				parameters.Add(Consume(TokenType.Identifier, "Expect parameter name."));
+			} while (Match(TokenType.Comma));
+		Consume(TokenType.RightParenthesis, "Expect ')' after parameters.");
+		Consume(TokenType.LeftBrace, "Expect '{' before " + kind + " body.");
+		var body = ParseBlockStatement();
+		return new Statement.FunctionStatement(name, parameters, body);
+	}
 
 	private Statement ParseVariableDeclarationStatement()
 	{
@@ -246,7 +266,34 @@ public sealed class Parser
 	private Expression ParseUnaryExpressions() =>
 		Match(TokenType.Bang, TokenType.Minus)
 			? new Expression.UnaryExpression(Previous(), ParseUnaryExpressions())
-			: ParsePrimaryExpressions();
+			: ParseFunctionCall();
+
+	private Expression ParseFunctionCall()
+	{
+		var expression = ParsePrimaryExpressions();
+		while (true)
+			if (Match(TokenType.LeftParenthesis))
+				expression = ParseFunction(expression);
+			else
+				break;
+		return expression;
+	}
+
+	private Expression ParseFunction(Expression callee)
+	{
+		var arguments = new List<Expression>();
+		if (!Check(TokenType.RightParenthesis))
+			do
+			{
+				if (arguments.Count >= 255)
+					throw new ArgumentOutOfRangeException(
+						(callee as Expression.LiteralExpression)?.Literal?.ToString(),
+						"Cannot have more than 255 arguments");
+				arguments.Add(ParseExpression());
+			} while (Match(TokenType.Comma));
+		var parenthesis = Consume(TokenType.RightParenthesis, "Expect ')' after arguments");
+		return new Expression.CallExpression(callee, parenthesis, arguments);
+	}
 
 	// ReSharper disable once MethodTooLong
 	private Expression ParsePrimaryExpressions()
@@ -291,7 +338,8 @@ public sealed class Parser
 			TokenType.Identifier => new MissingVariableName(Peek()),
 			TokenType.Semicolon => new MissingSemicolon(Peek()),
 			TokenType.RightBrace => new MissingRightBrace(Peek()),
-			TokenType.LeftParenthesis => new MissingLeftParenthesis(Peek(), message),
+			TokenType.LeftParenthesis => new MissingLeftParenthesis(message),
+			TokenType.LeftBrace => new MissingLeftBrace(message),
 			_ => new InvalidOperationException() //ncrunch: no coverage
 		};
 	}
@@ -323,7 +371,12 @@ public sealed class Parser
 
 	public sealed class MissingLeftParenthesis : Exception
 	{
-		public MissingLeftParenthesis(Token token, string message = "") : base(token.Type + message) { }
+		public MissingLeftParenthesis(string message = "") : base(message) { }
+	}
+
+	public sealed class MissingLeftBrace : Exception
+	{
+		public MissingLeftBrace(string message = "") : base(message) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)

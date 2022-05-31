@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using NUnit.Framework;
-
 namespace Lox.Tests;
 
 public sealed class ScannerTests

@@ -5,7 +5,8 @@ namespace Lox;
 // ReSharper disable once ClassTooBig
 public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 {
-	private Environment environment = new();
+	//public readonly Environment globals = new();
+	public Environment environment = new();
 
 	public void Interpret(List<Statement> statements)
 	{
@@ -184,6 +185,31 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return EvaluateExpression(logicalExpression.right);
 	}
 
+	public object VisitCallExpression(Expression.CallExpression callExpression)
+	{
+		var callee = EvaluateExpression(callExpression.callee);
+		var arguments = new List<object>();
+		foreach (var expressionArgument in callExpression.arguments)
+			arguments.Add(EvaluateExpression(expressionArgument));
+		if (callee is not Callable callableFunction)
+			throw new FunctionCallIsNotSupportedHere(callExpression.parenthesis);
+		if (arguments.Count != callableFunction.Arity())
+			throw new UnmatchedFunctionArguments("Expected " + callableFunction.Arity() +
+				" arguments but got " + arguments.Count + ".");
+		return callableFunction.Call(this, arguments);
+	}
+
+	public sealed class FunctionCallIsNotSupportedHere : Exception
+	{
+		public FunctionCallIsNotSupportedHere(Token callExpressionParenthesis) : base(
+			callExpressionParenthesis.Lexeme + " Can only call functions and classes.") { }
+	}
+
+	public sealed class UnmatchedFunctionArguments : Exception
+	{
+		public UnmatchedFunctionArguments(string message) : base(message) { }
+	}
+
 	public object VisitPrintStatement(Statement.PrintStatement printStatement)
 	{
 		var value = EvaluateExpression(printStatement.expression);
@@ -223,7 +249,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return new object();
 	}
 
-	private void ExecuteBlock(List<Statement> statements, Environment innerEnvironment)
+	public void ExecuteBlock(List<Statement> statements, Environment innerEnvironment)
 	{
 		var previous = environment;
 		try
@@ -253,4 +279,17 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			Execute(whileStatement.bodyStatement);
 		return new object();
 	}
+
+	public object VisitFunctionStatement(Statement.FunctionStatement functionStatement)
+	{
+		var loxFunction = new Function(functionStatement);
+		environment.Define(functionStatement.name.Lexeme, loxFunction);
+		return new object();
+	}
+}
+
+public interface Callable
+{
+	int Arity();
+	object Call(Interpreter interpreter, List<object> arguments);
 }

@@ -67,6 +67,21 @@ public abstract class Statement
 		public readonly Expression condition;
 		public readonly Statement bodyStatement;
 	}
+
+	public sealed class FunctionStatement : Statement
+	{
+		public FunctionStatement(Token name, List<Token> functionParams, List<Statement> body)
+		{
+			this.name = name;
+			this.functionParams = functionParams;
+			this.body = body;
+		}
+
+		public override T Accept<T>(StatementVisitor<T> statementVisitor) => statementVisitor.VisitFunctionStatement(this);
+		public readonly Token name;
+		public readonly List<Token> functionParams;
+		public readonly List<Statement> body;
+	}
 }
 
 public interface StatementVisitor<out T>
@@ -77,4 +92,5 @@ public interface StatementVisitor<out T>
 	T VisitBlockStatement(Statement.BlockStatement blockStatement);
 	T VisitIfStatement(Statement.IfStatement ifStatement);
 	T VisitWhileStatement(Statement.WhileStatement whileStatement);
+	T VisitFunctionStatement(Statement.FunctionStatement functionStatement);
 }

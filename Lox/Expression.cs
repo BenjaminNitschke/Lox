@@ -90,6 +90,21 @@ public abstract class Expression
 		public readonly Token operatorToken;
 		public readonly Expression right;
 	}
+
+	public class CallExpression : Expression
+	{
+		public CallExpression(Expression callee, Token parenthesis, List<Expression> arguments)
+		{
+			this.callee = callee;
+			this.parenthesis = parenthesis;
+			this.arguments = arguments;
+		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitCallExpression(this);
+		public readonly Expression callee;
+		public readonly Token parenthesis;
+		public readonly List<Expression> arguments;
+	}
 }
 
 public interface ExpressionVisitor<out T>
@@ -101,4 +116,5 @@ public interface ExpressionVisitor<out T>
 	T VisitVariableExpression(Expression.VariableExpression variableExpression);
 	T VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression);
 	T VisitLogicalExpression(Expression.LogicalExpression logicalExpression);
+	T VisitCallExpression(Expression.CallExpression callExpression);
 }

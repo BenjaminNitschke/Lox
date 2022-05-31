@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using NUnit.Framework;
-
-namespace Lox.Tests;
+﻿namespace Lox.Tests;
 
 public sealed class InterpreterTests
 {
@@ -43,6 +37,20 @@ public sealed class InterpreterTests
 	public void WhileWithoutOpeningBracket(string code) =>
 		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
 			Throws.InstanceOf<Parser.MissingLeftParenthesis>()!);
+
+	[Test]
+	public void FunctionWithUnMatchingArguments() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
+				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.UnmatchedFunctionArguments>());
+
+	[Test]
+	public void FunctionCallNotSupportedException() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi = 10;" +
+				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.FunctionCallIsNotSupportedHere>());
 
 	[Test]
 	public void EvaluateLiteralExpression()
@@ -141,6 +149,26 @@ public sealed class InterpreterTests
 		Console.SetOut(stringWriter);
 		new Interpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
+	}
+
+	[Test]
+	public void EvaluateFunction()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		new Interpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
+			"sayHi(\"Dear\", \"Reader\");"));
+		Assert.That(stringWriter.ToString(), Is.EqualTo("Hi, Dear Reader!\r\n"));
+	}
+
+	[Test]
+	public void PrintFunctionName()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		new Interpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
+			"print sayHi;"));
+		Assert.That(stringWriter.ToString(), Is.EqualTo("<fn sayHi>\r\n"));
 	}
 
 	private static List<Statement> GetStatements(string code) => new Parser(new Scanner(code).Tokens).Parse();

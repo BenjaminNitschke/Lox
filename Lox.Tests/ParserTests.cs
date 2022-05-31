@@ -1,7 +1,4 @@
-﻿using System.Linq;
-using NUnit.Framework;
-
-namespace Lox.Tests;
+﻿namespace Lox.Tests;
 
 public sealed class ParserTests
 {
@@ -30,6 +27,37 @@ public sealed class ParserTests
 	public void ParseMissingBrace() =>
 		Assert.That(() => GetParser("{ a + b; ").Parse(),
 			Throws.InstanceOf<Parser.MissingRightBrace>());
+
+	[Test]
+	public void TestArgumentsMoreThanAllowed()
+	{
+		var funcArguments = GenerateFunctionArguments(256);
+		Assert.That(() => GetParser("fun test(" + funcArguments + ");").Parse(),
+			Throws.InstanceOf<ArgumentOutOfRangeException>());
+	}
+
+	[Test]
+	public void ParseFunctionExpressionWithMaximumArguments()
+	{
+		var funcArguments = GenerateFunctionArguments(256);
+		Assert.That(() => GetParser("test(" + funcArguments + ");").Expressions,
+			Throws.InstanceOf<ArgumentOutOfRangeException>());
+	}
+
+	[Test]
+	public void FunctionMissingLeftBrace() =>
+		Assert.That(() => GetParser("fun test();").Parse(),
+			Throws.InstanceOf<Parser.MissingLeftBrace>());
+
+	private static string GenerateFunctionArguments(int count)
+	{
+		var argumentsBuilder = new StringBuilder();
+		for (var i = 0; i < count; i++)
+			argumentsBuilder.Append(i == count - 1
+				? "a"
+				: "a,");
+		return argumentsBuilder.ToString();
+	}
 
 	[TestCase("false", "False", TokenType.False)]
 	[TestCase("true", "True", TokenType.True)]
