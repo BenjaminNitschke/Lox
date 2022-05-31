@@ -11,7 +11,14 @@
 			var environment = new Environment(interpreter.environment);
 			for (var i = 0; i < declaration.functionParams.Count; i++)
 				environment.Define(declaration.functionParams[i].Lexeme, arguments[i]);
-			interpreter.ExecuteBlock(declaration.body, environment);
+			try
+			{
+				interpreter.ExecuteBlock(declaration.body, environment);
+			}
+			catch (Interpreter.Return returnValue)
+			{
+				return returnValue.value ?? new object();
+			}
 			return new object();
 		}
 

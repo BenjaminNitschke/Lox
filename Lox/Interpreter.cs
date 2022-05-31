@@ -286,6 +286,20 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		environment.Define(functionStatement.name.Lexeme, loxFunction);
 		return new object();
 	}
+
+	public object VisitReturnStatement(Statement.ReturnStatement returnStatement)
+	{
+		object? value = null;
+		if (returnStatement.value != null)
+			value = EvaluateExpression(returnStatement.value);
+		throw new Return(value);
+	}
+
+	public sealed class Return : Exception
+	{
+		public readonly object? value;
+		public Return(object? value) => this.value = value;
+	}
 }
 
 public interface Callable

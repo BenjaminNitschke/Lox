@@ -33,6 +33,18 @@ public sealed class ProgramTests
 	}
 
 	[Test]
+	public void PrintFibonacciNumbersWithRecursion()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\RecursiveFibonacci.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"0\r\n1\r\n1\r\n2\r\n3\r\n5\r\n8\r\n13\r\n21\r\n34\r\n55\r\n89\r\n144\r\n233\r\n377\r\n610\r\n987\r\n1597\r\n2584\r\n4181\r\n"));
+	}
+
+	[Test]
 	public void Run99BottlesBeerProgram()
 	{
 		var stringWriter = new StringWriter();

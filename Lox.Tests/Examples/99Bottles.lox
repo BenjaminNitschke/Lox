@@ -2,20 +2,19 @@
 var firstLine = "";
 var secondLine = "";
 var bottlesString = "bottles";
-
-while( bottlesCount >= 0)
+fun print99Bottles()
 {
-	if(bottlesCount == 0)
+	while( bottlesCount >= 0)
 	{
-		firstLine = "No more bottles of beer on the wall. No more bottles of beer.";
-    secondLine = "Go to the store and buy some more.";
+		if(bottlesCount == 0)
+		{
+			firstLine = "No more bottles of beer on the wall. No more bottles of beer.";
+			secondLine = "Go to the store and buy some more.";
 
-		print firstLine;
-		print secondLine;
-		bottlesCount = - 1;
-	}
-	if(bottlesCount != -1)
-	{
+			print firstLine;
+			print secondLine;
+			return ;
+		}
 		if(bottlesCount == 1)
 		{
 			bottlesString = "bottle";
@@ -40,5 +39,6 @@ while( bottlesCount >= 0)
 
 		print firstLine;
 		print secondLine;
-	}
+  }
 }
+print99Bottles();

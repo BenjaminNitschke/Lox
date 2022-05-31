@@ -64,11 +64,23 @@ public sealed class Parser
 				? ParseIfStatement()
 				: Match(TokenType.Print)
 					? ParsePrintStatement()
-					: Match(TokenType.While)
-						? ParseWhileStatement()
-						: Match(TokenType.LeftBrace)
-							? new Statement.BlockStatement(ParseBlockStatement())
-							: ParseExpressionStatement();
+					: Match(TokenType.Return)
+						? ParseReturnStatement()
+						: Match(TokenType.While)
+							? ParseWhileStatement()
+							: Match(TokenType.LeftBrace)
+								? new Statement.BlockStatement(ParseBlockStatement())
+								: ParseExpressionStatement();
+
+	private Statement ParseReturnStatement()
+	{
+		Previous();
+		Expression? value = null;
+		if (!Check(TokenType.Semicolon))
+			value = ParseExpression();
+		Consume(TokenType.Semicolon, "Expect ';' after return value");
+		return new Statement.ReturnStatement(value);
+	}
 
 	private Statement ParseForStatement()
 	{
