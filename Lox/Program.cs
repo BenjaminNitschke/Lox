@@ -6,15 +6,19 @@ public sealed class Program
 
 	public static void Main(string[] args)
 	{
-		if (args.Length > 1)
+		switch (args.Length)
 		{
+		case > 1:
 			Console.WriteLine("Usage: Lox [script]");
 			System.Environment.Exit(64);
-		}
-		else if (args.Length == 1)
+			break;
+		case 1:
 			RunFile(args[0]);
-		else
+			break;
+		default:
 			RunPrompt();
+			break;
+		}
 	}
 
 	private static void RunFile(string filename) => Run(File.ReadAllText(filename), filename);

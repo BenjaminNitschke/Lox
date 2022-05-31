@@ -4,7 +4,7 @@ public abstract class Expression
 {
 	public abstract T Accept<T>(ExpressionVisitor<T> visitor);
 
-	public class LiteralExpression : Expression
+	public sealed class LiteralExpression : Expression
 	{
 		public object? Literal { get; }
 		public Token TokenType { get; }
@@ -18,7 +18,7 @@ public abstract class Expression
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitLiteralExpression(this);
 	}
 
-	public class UnaryExpression : Expression
+	public sealed class UnaryExpression : Expression
 	{
 		public Token OperatorToken { get; }
 		public Expression RightExpression { get; }
@@ -32,7 +32,7 @@ public abstract class Expression
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitUnaryExpression(this);
 	}
 
-	public class BinaryExpression : Expression
+	public sealed class BinaryExpression : Expression
 	{
 		public Expression LeftExpression { get; }
 		public Token OperatorToken { get; }
@@ -48,14 +48,14 @@ public abstract class Expression
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitBinaryExpression(this);
 	}
 
-	public class VariableExpression : Expression
+	public sealed class VariableExpression : Expression
 	{
 		public readonly Token name;
 		public VariableExpression(Token name) => this.name = name;
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitVariableExpression(this);
 	}
 
-	public class AssignmentExpression : Expression
+	public sealed class AssignmentExpression : Expression
 	{
 		public readonly Token name;
 		public readonly Expression value;
@@ -69,14 +69,14 @@ public abstract class Expression
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitAssignmentExpression(this);
 	}
 
-	public class GroupingExpression : Expression
+	public sealed class GroupingExpression : Expression
 	{
 		public readonly Expression expression;
 		public GroupingExpression(Expression expression) => this.expression = expression;
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitGroupingExpression(this);
 	}
 
-	public class LogicalExpression : Expression
+	public sealed class LogicalExpression : Expression
 	{
 		public LogicalExpression(Expression left, Expression right, Token operatorToken)
 		{
