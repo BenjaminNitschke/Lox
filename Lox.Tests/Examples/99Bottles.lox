@@ -1,0 +1,44 @@
+﻿var bottlesCount = 99;
+var firstLine = "";
+var secondLine = "";
+var bottlesString = "bottles";
+
+while( bottlesCount >= 0)
+{
+	if(bottlesCount == 0)
+	{
+		firstLine = "No more bottles of beer on the wall. No more bottles of beer.";
+    secondLine = "Go to the store and buy some more.";
+
+		print firstLine;
+		print secondLine;
+		bottlesCount = - 1;
+	}
+	if(bottlesCount != -1)
+	{
+		if(bottlesCount == 1)
+		{
+			bottlesString = "bottle";
+		}
+
+		firstLine = bottlesCount + " " + bottlesString + " of beer on the wall, ";
+		firstLine = firstLine + bottlesCount + " " + bottlesString + " of beer.";
+
+		bottlesCount = bottlesCount - 1;
+
+		if(bottlesCount == 1)
+		{
+			bottlesString = "bottle";
+		}
+		if(bottlesCount == 0)
+		{
+			bottlesString = "bottles";
+		}
+
+		secondLine = "Take one down and pass it around, " + (bottlesCount); 
+		secondLine = secondLine + " " + bottlesString + " of beer on the wall.";
+
+		print firstLine;
+		print secondLine;
+	}
+}
