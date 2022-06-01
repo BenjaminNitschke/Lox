@@ -187,9 +187,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 	public object VisitCallExpression(Expression.CallExpression callExpression)
 	{
 		var callee = EvaluateExpression(callExpression.callee);
-		var arguments = new List<object>();
-		foreach (var expressionArgument in callExpression.arguments)
-			arguments.Add(EvaluateExpression(expressionArgument));
+		var arguments = callExpression.arguments.Select(EvaluateExpression).ToList();
 		if (callee is not Callable callableFunction)
 			throw new FunctionCallIsNotSupportedHere(callExpression.parenthesis);
 		if (arguments.Count != callableFunction.Arity())
@@ -197,6 +195,29 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 				" arguments but got " + arguments.Count + ".");
 		return callableFunction.Call(this, arguments);
 	}
+
+	public object VisitGetExpression(Expression.GetExpression getExpression)
+	{
+		var getExpressionValue = EvaluateExpression(getExpression.expression);
+		if (getExpressionValue is Instance loxInstance)
+			return loxInstance.Get(getExpression.name);
+		throw new OnlyInstancesCanHaveProperty();
+	}
+
+	public sealed class OnlyInstancesCanHaveProperty : Exception { }
+
+	public object VisitSetExpression(Expression.SetExpression setExpression)
+	{
+		var setExpressionValue = EvaluateExpression(setExpression.expression);
+		if (setExpressionValue is not Instance loxInstance)
+			throw new OnlyInstancesCanHaveFields();
+		var value = EvaluateExpression(setExpression.value);
+		loxInstance.Set(setExpression.name, value);
+		return value;
+	}
+
+	public sealed class OnlyInstancesCanHaveFields : Exception { }
+	public object VisitThisExpression(Expression.ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
 
 	public sealed class FunctionCallIsNotSupportedHere : Exception
 	{
@@ -281,7 +302,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	public object VisitFunctionStatement(Statement.FunctionStatement functionStatement)
 	{
-		var loxFunction = new Function(functionStatement, environment);
+		var loxFunction = new Function(functionStatement, environment, false);
 		environment.Define(functionStatement.name.Lexeme, loxFunction);
 		return new object();
 	}
@@ -292,6 +313,20 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		if (returnStatement.value != null)
 			value = EvaluateExpression(returnStatement.value);
 		throw new Return(value);
+	}
+
+	public object VisitClassStatement(Statement.ClassStatement classStatement)
+	{
+		environment.Define(classStatement.name.Lexeme, new object());
+		var methods = new Dictionary<string, Function>();
+		foreach (var method in classStatement.methods)
+		{
+			var function = new Function(method, environment, false);
+			methods.Add(method.name.Lexeme, function);
+		}
+		var loxClass = new Class(classStatement.name.Lexeme, methods);
+		environment.Assign(classStatement.name, loxClass);
+		return new object();
 	}
 
 	public sealed class Return : Exception

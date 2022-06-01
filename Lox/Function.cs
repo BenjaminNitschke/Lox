@@ -1,15 +1,25 @@
 ﻿namespace Lox;
 
-public class Function : Callable
+public sealed class Function : Callable
 {
-	public Function(Statement.FunctionStatement declaration, Environment closure)
+	public Function(Statement.FunctionStatement declaration, Environment closure, bool isInitializer)
 	{
 		this.declaration = declaration;
 		this.closure = closure;
+		this.isInitializer = isInitializer;
 	}
 
 	private readonly Statement.FunctionStatement declaration;
 	private readonly Environment closure;
+	private readonly bool isInitializer;
+
+	public Function Bind(Instance instance)
+	{
+		var environment = new Environment(closure);
+		environment.Define("this", instance);
+		return new Function(declaration, environment, isInitializer);
+	}
+
 	public int Arity() => declaration.functionParams.Count;
 
 	public object Call(Interpreter interpreter, List<object> arguments)
@@ -23,9 +33,13 @@ public class Function : Callable
 		}
 		catch (Interpreter.Return returnValue)
 		{
-			return returnValue.value ?? new object();
+			return isInitializer
+				? closure.Get(new Token(TokenType.This, "this", null, 0))
+				: returnValue.value ?? new object();
 		}
-		return new object();
+		return isInitializer
+			? closure.Get(new Token(TokenType.This, "this", null, 0))
+			: new object();
 	}
 
 	public override string ToString() => "<fn " + declaration.name.Lexeme + ">";

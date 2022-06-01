@@ -23,11 +23,24 @@ public sealed class Parser
 	}
 
 	private Statement Declaration() =>
-		Match(TokenType.Fun)
-			? ParseFunctionStatement("function")
-			: Match(TokenType.Var)
-				? ParseVariableDeclarationStatement()
-				: ParseStatement();
+		Match(TokenType.Class)
+			? ParseClassDeclaration()
+			: Match(TokenType.Fun)
+				? ParseFunctionStatement("function")
+				: Match(TokenType.Var)
+					? ParseVariableDeclarationStatement()
+					: ParseStatement();
+
+	private Statement ParseClassDeclaration()
+	{
+		var name = Consume(TokenType.Identifier, "Expect class name");
+		Consume(TokenType.LeftBrace, "Expect '{' before class body");
+		var methods = new List<Statement.FunctionStatement>();
+		while (!Check(TokenType.RightBrace) && !IsAtEnd())
+			methods.Add(ParseFunctionStatement("function"));
+		Consume(TokenType.RightBrace, "Expect '}' after class body");
+		return new Statement.ClassStatement(name, methods);
+	}
 
 	private Statement.FunctionStatement ParseFunctionStatement(string kind)
 	{
@@ -205,6 +218,8 @@ public sealed class Parser
 				var name = variableExpression.name;
 				return new Expression.AssignmentExpression(name, value);
 			}
+			if (expression is Expression.GetExpression getExpression)
+				return new Expression.SetExpression(getExpression.expression, getExpression.name, value);
 			throw new InvalidAssignmentTarget(equals);
 		}
 		return expression;
@@ -285,13 +300,18 @@ public sealed class Parser
 		var expression = ParsePrimaryExpressions();
 		while (true)
 			if (Match(TokenType.LeftParenthesis))
-				expression = ParseFunction(expression);
+				expression = ParseFunctionBody(expression);
+			else if (Match(TokenType.Dot))
+			{
+				var name = Consume(TokenType.Identifier, "Expect property name after '.'.");
+				expression = new Expression.GetExpression(expression, name);
+			}
 			else
 				break;
 		return expression;
 	}
 
-	private Expression ParseFunction(Expression callee)
+	private Expression ParseFunctionBody(Expression callee)
 	{
 		var arguments = new List<Expression>();
 		if (!Check(TokenType.RightParenthesis))
@@ -318,6 +338,8 @@ public sealed class Parser
 			return new Expression.LiteralExpression(null, Previous());
 		if (Match(TokenType.Number, TokenType.String))
 			return new Expression.LiteralExpression(Previous().Literal, Previous());
+		if (Match(TokenType.This))
+			return new Expression.ThisExpression(Previous());
 		if (Match(TokenType.Identifier))
 			return new Expression.VariableExpression(Previous());
 		if (ParseGroupingExpression(out var groupingExpression))
@@ -347,9 +369,9 @@ public sealed class Parser
 		throw type switch
 		{
 			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),
-			TokenType.Identifier => new MissingVariableName(Peek()),
+			TokenType.Identifier => new MissingVariableName(Peek(), message),
 			TokenType.Semicolon => new MissingSemicolon(Peek()),
-			TokenType.RightBrace => new MissingRightBrace(Peek()),
+			TokenType.RightBrace => new MissingRightBrace(Peek(), message),
 			TokenType.LeftParenthesis => new MissingLeftParenthesis(message),
 			TokenType.LeftBrace => new MissingLeftBrace(message),
 			_ => new InvalidOperationException() //ncrunch: no coverage
@@ -373,12 +395,12 @@ public sealed class Parser
 
 	public sealed class MissingVariableName : Exception
 	{
-		public MissingVariableName(Token token) : base(token.Type.ToString()) { }
+		public MissingVariableName(Token token, string message = "") : base(message + " " + token.Type) { }
 	}
 
 	public sealed class MissingRightBrace : Exception
 	{
-		public MissingRightBrace(Token token) : base(token.Type.ToString()) { }
+		public MissingRightBrace(Token token, string message = "") : base(message + " " + token.Type) { }
 	}
 
 	public sealed class MissingLeftParenthesis : Exception

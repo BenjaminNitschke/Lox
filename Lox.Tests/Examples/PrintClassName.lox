@@ -1,0 +1,4 @@
+﻿class Bagel {}
+var bagel = Bagel();
+print Bagel;
+print bagel;

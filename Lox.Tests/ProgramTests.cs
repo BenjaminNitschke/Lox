@@ -21,6 +21,54 @@ public sealed class ProgramTests
 	}
 
 	[Test]
+	public void PrintHelloWorld()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\HelloWorld.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"Hello, world!\r\n"));
+	}
+
+	[Test]
+	public void PrintClassName()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\PrintClassName.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"Bagel\r\nBagel instance\r\n"));
+	}
+
+	[Test]
+	public void AccessClassPropertyUsingInstance()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\AccessClassProperty.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"Crunch crunch crunch!\r\n"));
+	}
+
+	[Test]
+	public void PrintUsingThisInstance()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\PrintUsingThisInstance.lox" });
+		Assert.That(stringWriter.ToString(),
+			Is.EqualTo(
+				"The German chocolate cake is delicious!\r\n"));
+	}
+
+	[Test]
 	public void PrintFibonacciNumbersIn10000()
 	{
 		var stringWriter = new StringWriter();

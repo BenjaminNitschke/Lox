@@ -50,7 +50,28 @@ public sealed class InterpreterTests
 		Assert.That(
 			() => new Interpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi = 10;" +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.FunctionCallIsNotSupportedHere>());
+				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.FunctionCallIsNotSupportedHere>()!);
+
+	[Test]
+	public void OnlyInstancesCanHaveProperty() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi." +
+				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.OnlyInstancesCanHaveProperty>()!);
+
+	[Test]
+	public void OnlyInstancesCanHaveFields() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"class Cake { taste() { var adjective = \"delicious\"; print \"The \" + this.flavor + \" cake is \" + adjective + \"!\"; } } var cake = Cake(); cake = 10; cake.flavor = \"German chocolate\";")),
+			Throws.InstanceOf<Interpreter.OnlyInstancesCanHaveFields>()!);
+
+	[Test]
+	public void AccessUndefinedProperty() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"class Cake { taste() { var adjective = \"delicious\"; print \"The \" + this.flavor + \" cake is \" + adjective + \"!\"; } } var cake = Cake(); var test = cake.random;")),
+			Throws.InstanceOf<Instance.UndefinedProperty>()!);
 
 	[Test]
 	public void EvaluateLiteralExpression()

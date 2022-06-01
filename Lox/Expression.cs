@@ -91,7 +91,7 @@ public abstract class Expression
 		public readonly Expression right;
 	}
 
-	public class CallExpression : Expression
+	public sealed class CallExpression : Expression
 	{
 		public CallExpression(Expression callee, Token parenthesis, List<Expression> arguments)
 		{
@@ -105,6 +105,41 @@ public abstract class Expression
 		public readonly Token parenthesis;
 		public readonly List<Expression> arguments;
 	}
+
+	public sealed class GetExpression : Expression
+	{
+		public GetExpression(Expression expression, Token name)
+		{
+			this.expression = expression;
+			this.name = name;
+		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitGetExpression(this);
+		public readonly Expression expression;
+		public readonly Token name;
+	}
+
+	public sealed class SetExpression : Expression
+	{
+		public SetExpression(Expression expression, Token name, Expression value)
+		{
+			this.expression = expression;
+			this.name = name;
+			this.value = value;
+		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitSetExpression(this);
+		public readonly Expression expression;
+		public readonly Token name;
+		public readonly Expression value;
+	}
+
+	public sealed class ThisExpression : Expression
+	{
+		public ThisExpression(Token keyword) => this.keyword = keyword;
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitThisExpression(this);
+		public readonly Token keyword;
+	}
 }
 
 public interface ExpressionVisitor<out T>
@@ -117,4 +152,7 @@ public interface ExpressionVisitor<out T>
 	T VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression);
 	T VisitLogicalExpression(Expression.LogicalExpression logicalExpression);
 	T VisitCallExpression(Expression.CallExpression callExpression);
+	T VisitGetExpression(Expression.GetExpression getExpression);
+	T VisitSetExpression(Expression.SetExpression setExpression);
+	T VisitThisExpression(Expression.ThisExpression thisExpression);
 }

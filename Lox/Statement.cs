@@ -89,6 +89,19 @@ public abstract class Statement
 		public override T Accept<T>(StatementVisitor<T> statementVisitor) => statementVisitor.VisitReturnStatement(this);
 		public readonly Expression? value;
 	}
+
+	public sealed class ClassStatement : Statement
+	{
+		public ClassStatement(Token name, List<FunctionStatement> methods)
+		{
+			this.name = name;
+			this.methods = methods;
+		}
+
+		public override T Accept<T>(StatementVisitor<T> statementVisitor) => statementVisitor.VisitClassStatement(this);
+		public readonly Token name;
+		public readonly List<FunctionStatement> methods;
+	}
 }
 
 public interface StatementVisitor<out T>
@@ -101,4 +114,5 @@ public interface StatementVisitor<out T>
 	T VisitWhileStatement(Statement.WhileStatement whileStatement);
 	T VisitFunctionStatement(Statement.FunctionStatement functionStatement);
 	T VisitReturnStatement(Statement.ReturnStatement returnStatement);
+	T VisitClassStatement(Statement.ClassStatement classStatement);
 }
