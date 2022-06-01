@@ -13,7 +13,7 @@ fun print99Bottles()
 
 			print firstLine;
 			print secondLine;
-			return ;
+			return;
 		}
 		if(bottlesCount == 1)
 		{
