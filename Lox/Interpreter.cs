@@ -228,6 +228,16 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	public object VisitThisExpression(Expression.ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
 
+	public object VisitSuperExpression(Expression.SuperExpression superExpression)
+	{
+		var superClass = (Class)environment.Get(new Token(TokenType.Super, "super", "super", 0));
+		var instanceObject = (Instance)environment.Get(new Token(TokenType.This, "this", "this", 0));
+		var method = superClass.FindMethod(superExpression.method.Lexeme);
+		if (method == null)
+			throw new Instance.UndefinedProperty(superExpression.method.Lexeme);
+		return method?.Bind(instanceObject) ?? new object();
+	}
+
 	public sealed class FunctionCallIsNotSupportedHere : InterpreterFailed
 	{
 		public FunctionCallIsNotSupportedHere(Token callExpressionParenthesis) : base(
@@ -326,6 +336,18 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	public object VisitClassStatement(Statement.ClassStatement classStatement)
 	{
+		object? superClass = null;
+		if (classStatement.superClass != null)
+		{
+			superClass = EvaluateExpression(classStatement.superClass);
+			if (superClass is not Class)
+				throw new SuperClassMustBeAClass(classStatement.superClass.name);
+		}
+		if (classStatement.superClass != null && superClass != null)
+		{
+			environment = new Environment(environment);
+			environment.Define("super", superClass);
+		}
 		environment.Define(classStatement.name.Lexeme, new object());
 		var methods = new Dictionary<string, Function>();
 		foreach (var method in classStatement.methods)
@@ -334,13 +356,11 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			methods.Add(method.name.Lexeme, function);
 		}
 		var loxClass = new Class(classStatement.name.Lexeme, methods);
-		if (classStatement.superClass != null)
+		if (superClass != null)
 		{
-			var superClass = EvaluateExpression(classStatement.superClass);
-			if (superClass is Class superClassObject)
-				loxClass = new Class(classStatement.name.Lexeme, methods, superClassObject);
-			else
-				throw new SuperClassMustBeAClass(classStatement.superClass.name);
+			loxClass = new Class(classStatement.name.Lexeme, methods, loxClass);
+			if (environment.enclosing != null)
+				environment = environment.enclosing;
 		}
 		environment.Assign(classStatement.name, loxClass);
 		return new object();

@@ -344,6 +344,14 @@ public sealed class Parser
 			return new Expression.LiteralExpression(null, Previous());
 		if (Match(TokenType.Number, TokenType.String))
 			return new Expression.LiteralExpression(Previous().Literal, Previous());
+		if (Match(TokenType.Super))
+		{
+			var keyword = Previous();
+			Consume(TokenType.Dot, "Expect '.' after 'super'.");
+			var method = Consume(TokenType.Identifier,
+				"Expect superclass method name.");
+			return new Expression.SuperExpression(keyword, method);
+		}
 		if (Match(TokenType.This))
 			return new Expression.ThisExpression(Previous());
 		if (Match(TokenType.Identifier))

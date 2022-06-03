@@ -140,6 +140,19 @@ public abstract class Expression
 		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitThisExpression(this);
 		public readonly Token keyword;
 	}
+
+	public sealed class SuperExpression : Expression
+	{
+		public SuperExpression(Token keyword, Token method)
+		{
+			this.keyword = keyword;
+			this.method = method;
+		}
+
+		public override T Accept<T>(ExpressionVisitor<T> visitor) => visitor.VisitSuperExpression(this);
+		public readonly Token keyword;
+		public readonly Token method;
+	}
 }
 
 public interface ExpressionVisitor<out T>
@@ -155,4 +168,5 @@ public interface ExpressionVisitor<out T>
 	T VisitGetExpression(Expression.GetExpression getExpression);
 	T VisitSetExpression(Expression.SetExpression setExpression);
 	T VisitThisExpression(Expression.ThisExpression thisExpression);
+	T VisitSuperExpression(Expression.SuperExpression superExpression);
 }

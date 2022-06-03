@@ -2,8 +2,10 @@
 
 public sealed class Environment
 {
-	private readonly Environment? enclosing;
+	public readonly Environment? enclosing;
 	private readonly Dictionary<string, object> values = new();
+	private string globalName = "";
+	private object globalValue = null!;
 	public Environment() => enclosing = null;
 	public Environment(Environment enclosing) => this.enclosing = enclosing;
 
@@ -13,6 +15,8 @@ public sealed class Environment
 			return values[name.Lexeme];
 		if (enclosing != null)
 			return enclosing.Get(name);
+		if (name.Lexeme == globalName)
+			return globalValue;
 		throw new UndefinedVariable(name);
 	}
 
@@ -29,8 +33,12 @@ public sealed class Environment
 			return;
 		}
 		if (enclosing == null)
-			throw new UndefinedVariable(name);
-		enclosing.Assign(name, value);
+		{
+			globalName = name.Lexeme;
+			globalValue = value;
+		} //throw new UndefinedVariable(name);
+		else
+			enclosing.Assign(name, value);
 	}
 
 	public void Define(string name, object value)

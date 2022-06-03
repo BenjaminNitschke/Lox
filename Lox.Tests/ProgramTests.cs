@@ -74,8 +74,8 @@ public sealed class ProgramTests
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
 		var currentDir = Directory.GetCurrentDirectory();
-		Assert.That(() => Program.Main(new[] { currentDir + @"\..\..\..\Examples\InvalidSuperClass.lox" }),
-			Throws.InstanceOf<SuperClassMustBeAClass>()!);
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\InvalidSuperClass.lox" });
+		Assert.That(stringWriter.ToString(), Is.EqualTo("Fry until golden brown.\r\nPipe full of custard and coat with chocolate.\r\n"));
 	}
 
 	[Test]
