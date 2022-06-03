@@ -16,9 +16,9 @@ public sealed class Environment
 		throw new UndefinedVariable(name);
 	}
 
-	public sealed class UndefinedVariable : Exception
+	public sealed class UndefinedVariable : OperationFailed
 	{
-		public UndefinedVariable(Token name) : base(name.Lexeme) { }
+		public UndefinedVariable(Token name) : base(name.Lexeme, name.Line) { }
 	}
 
 	public void Assign(Token name, object value)

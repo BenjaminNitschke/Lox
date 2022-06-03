@@ -1,15 +1,17 @@
 ﻿namespace Lox;
 
-public class Class : Callable
+public sealed class Class : Callable
 {
-	public Class(string name, Dictionary<string, Function> methods)
+	public Class(string name, Dictionary<string, Function> methods, Class? superClass = null)
 	{
 		this.name = name;
 		this.methods = methods;
+		this.superClass = superClass;
 	}
 
 	public readonly string name;
 	private readonly Dictionary<string, Function> methods;
+	private readonly Class? superClass;
 
 	public int Arity()
 	{
@@ -28,7 +30,7 @@ public class Class : Callable
 	public Function? FindMethod(string methodName) =>
 		methods.ContainsKey(methodName)
 			? methods[methodName]
-			: null;
+			: superClass?.FindMethod(name);
 
 	public override string ToString() => name;
 }

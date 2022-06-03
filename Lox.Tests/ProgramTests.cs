@@ -69,6 +69,16 @@ public sealed class ProgramTests
 	}
 
 	[Test]
+	public void SuperClassMustBeAClass()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Assert.That(() => Program.Main(new[] { currentDir + @"\..\..\..\Examples\InvalidSuperClass.lox" }),
+			Throws.InstanceOf<SuperClassMustBeAClass>()!);
+	}
+
+	[Test]
 	public void PrintFibonacciNumbersIn10000()
 	{
 		var stringWriter = new StringWriter();

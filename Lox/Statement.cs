@@ -92,15 +92,17 @@ public abstract class Statement
 
 	public sealed class ClassStatement : Statement
 	{
-		public ClassStatement(Token name, List<FunctionStatement> methods)
+		public ClassStatement(Token name, List<FunctionStatement> methods, Expression.VariableExpression? superClass)
 		{
 			this.name = name;
 			this.methods = methods;
+			this.superClass = superClass;
 		}
 
 		public override T Accept<T>(StatementVisitor<T> statementVisitor) => statementVisitor.VisitClassStatement(this);
 		public readonly Token name;
 		public readonly List<FunctionStatement> methods;
+		public readonly Expression.VariableExpression? superClass;
 	}
 }
 

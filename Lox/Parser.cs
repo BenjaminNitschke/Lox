@@ -34,12 +34,18 @@ public sealed class Parser
 	private Statement ParseClassDeclaration()
 	{
 		var name = Consume(TokenType.Identifier, "Expect class name");
+		Expression.VariableExpression? superClass = null;
+		if (Match(TokenType.Less))
+		{
+			Consume(TokenType.Identifier, "Expect Super Class Name");
+			superClass = new Expression.VariableExpression(Previous());
+		}
 		Consume(TokenType.LeftBrace, "Expect '{' before class body");
 		var methods = new List<Statement.FunctionStatement>();
 		while (!Check(TokenType.RightBrace) && !IsAtEnd())
 			methods.Add(ParseFunctionStatement("function"));
 		Consume(TokenType.RightBrace, "Expect '}' after class body");
-		return new Statement.ClassStatement(name, methods);
+		return new Statement.ClassStatement(name, methods, superClass);
 	}
 
 	private Statement.FunctionStatement ParseFunctionStatement(string kind)

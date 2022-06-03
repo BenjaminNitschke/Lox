@@ -334,6 +334,14 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			methods.Add(method.name.Lexeme, function);
 		}
 		var loxClass = new Class(classStatement.name.Lexeme, methods);
+		if (classStatement.superClass != null)
+		{
+			var superClass = EvaluateExpression(classStatement.superClass);
+			if (superClass is Class superClassObject)
+				loxClass = new Class(classStatement.name.Lexeme, methods, superClassObject);
+			else
+				throw new SuperClassMustBeAClass(classStatement.superClass.name);
+		}
 		environment.Assign(classStatement.name, loxClass);
 		return new object();
 	}
@@ -343,6 +351,11 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public readonly object? value;
 		public Return(object? value) => this.value = value;
 	}
+}
+
+public sealed class SuperClassMustBeAClass : OperationFailed
+{
+	public SuperClassMustBeAClass(Token token) : base(token.Lexeme, token.Line) { }
 }
 
 public class InterpreterFailed : OperationFailed
