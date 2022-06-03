@@ -249,9 +249,9 @@ public sealed class Parser
 		return expression;
 	}
 
-	public class InvalidAssignmentTarget : Exception
+	public class InvalidAssignmentTarget : ParsingFailed
 	{
-		public InvalidAssignmentTarget(Token token) : base(token.Type.ToString()) { }
+		public InvalidAssignmentTarget(Token token) : base(token) { }
 	}
 
 	private Expression ParseEqualityExpression()
@@ -368,49 +368,49 @@ public sealed class Parser
 			return Advance();
 		throw type switch
 		{
-			TokenType.RightParenthesis => new MissingClosingParenthesis(Peek()),
-			TokenType.Identifier => new MissingVariableName(Peek(), message),
-			TokenType.Semicolon => new MissingSemicolon(Peek()),
-			TokenType.RightBrace => new MissingRightBrace(Peek(), message),
-			TokenType.LeftParenthesis => new MissingLeftParenthesis(message),
-			TokenType.LeftBrace => new MissingLeftBrace(message),
+			TokenType.RightParenthesis => new MissingClosingParenthesis(new Token(type, "", null, Peek().Line)),
+			TokenType.Identifier => new MissingVariableName(new Token(type, "", null, Peek().Line), message),
+			TokenType.Semicolon => new MissingSemicolon(new Token(type, "", null, Peek().Line)),
+			TokenType.RightBrace => new MissingRightBrace(new Token(type, "", null, Peek().Line), message),
+			TokenType.LeftParenthesis => new MissingLeftParenthesis(new Token(type, "", null, Peek().Line), message),
+			TokenType.LeftBrace => new MissingLeftBrace(new Token(type, "", null, Peek().Line), message),
 			_ => new InvalidOperationException() //ncrunch: no coverage
 		};
 	}
 
-	public sealed class MissingSemicolon : Exception
+	public sealed class MissingSemicolon : ParsingFailed
 	{
-		public MissingSemicolon(Token token) : base(token.Type.ToString()) { }
+		public MissingSemicolon(Token token) : base(token) { }
 	}
 
-	public sealed class MissingClosingParenthesis : Exception
+	public sealed class MissingClosingParenthesis : ParsingFailed
 	{
-		public MissingClosingParenthesis(Token token) : base(token.Type.ToString()) { }
+		public MissingClosingParenthesis(Token token) : base(token) { }
 	}
 
-	public sealed class UnknownExpression : Exception
+	public sealed class UnknownExpression : ParsingFailed
 	{
-		public UnknownExpression(Token token) : base(token.Type.ToString()) { }
+		public UnknownExpression(Token token) : base(token) { }
 	}
 
-	public sealed class MissingVariableName : Exception
+	public sealed class MissingVariableName : ParsingFailed
 	{
-		public MissingVariableName(Token token, string message = "") : base(message + " " + token.Type) { }
+		public MissingVariableName(Token token, string message = "") : base(token, message) { }
 	}
 
-	public sealed class MissingRightBrace : Exception
+	public sealed class MissingRightBrace : ParsingFailed
 	{
-		public MissingRightBrace(Token token, string message = "") : base(message + " " + token.Type) { }
+		public MissingRightBrace(Token token, string message = "") : base(token, message) { }
 	}
 
-	public sealed class MissingLeftParenthesis : Exception
+	public sealed class MissingLeftParenthesis : ParsingFailed
 	{
-		public MissingLeftParenthesis(string message = "") : base(message) { }
+		public MissingLeftParenthesis(Token token, string message = "") : base(token, message) { }
 	}
 
-	public sealed class MissingLeftBrace : Exception
+	public sealed class MissingLeftBrace : ParsingFailed
 	{
-		public MissingLeftBrace(string message = "") : base(message) { }
+		public MissingLeftBrace(Token token, string message = "") : base(token, message) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)
@@ -437,6 +437,11 @@ public sealed class Parser
 			currentTokenCount++;
 		return Previous();
 	}
+}
+
+public class ParsingFailed : OperationFailed
+{
+	protected ParsingFailed(Token token, string message = "") : base(message + " " + token.Type, token.Line) { }
 }
 
 

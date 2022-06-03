@@ -40,5 +40,6 @@ public enum TokenType
 	True,
 	Var,
 	While,
+	Call,
 	Eof
 }

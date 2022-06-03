@@ -42,7 +42,7 @@ public sealed class Scanner
 			HandleString(c) ?? HandleDigit(c) ?? throw new UnexpectedCharacter(c, line, filePath);
 	}
 
-	public sealed class UnexpectedCharacter : ScanningFailed
+	public sealed class UnexpectedCharacter : OperationFailed
 	{
 		public UnexpectedCharacter(char character, int fileLineNumber, string filePath) :
 			base(character.ToString(), fileLineNumber, filePath) { }

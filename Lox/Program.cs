@@ -47,6 +47,10 @@ public sealed class Program
 				foreach (var inner in ex.InnerExceptions)
 					Console.WriteLine(inner.GetType().Name + " " + inner.Message);
 			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.GetType().Name + " " + ex.Message);
+			}
 		} while (true);
 	}
 }

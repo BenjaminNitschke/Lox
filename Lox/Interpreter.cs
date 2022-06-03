@@ -108,9 +108,9 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	private static bool IsEqual(object a, object b) => a.Equals(b);
 
-	public sealed class OperandMustBeANumberOrString : Exception
+	public sealed class OperandMustBeANumberOrString : InterpreterFailed
 	{
-		public OperandMustBeANumberOrString(Token expressionOperator) : base(expressionOperator.Lexeme) { }
+		public OperandMustBeANumberOrString(Token expressionOperator) : base(expressionOperator) { }
 	}
 
 	private static void CheckNumberOperand(Token expressionOperator, object firstOperand,
@@ -128,9 +128,9 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		throw new OperandMustBeANumber(expressionOperator);
 	}
 
-	public sealed class OperandMustBeANumber : Exception
+	public sealed class OperandMustBeANumber : InterpreterFailed
 	{
-		public OperandMustBeANumber(Token expressionOperator) : base(expressionOperator.Lexeme) { }
+		public OperandMustBeANumber(Token expressionOperator) : base(expressionOperator) { }
 	}
 
 	public object VisitUnaryExpression(Expression.UnaryExpression unaryExpression)
@@ -189,10 +189,12 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		var callee = EvaluateExpression(callExpression.callee);
 		var arguments = callExpression.arguments.Select(EvaluateExpression).ToList();
 		if (callee is not Callable callableFunction)
-			throw new FunctionCallIsNotSupportedHere(callExpression.parenthesis);
+			throw new FunctionCallIsNotSupportedHere(new Token(TokenType.Call, "Function Call", null,
+				callExpression.parenthesis.Line));
 		if (arguments.Count != callableFunction.Arity())
-			throw new UnmatchedFunctionArguments("Expected " + callableFunction.Arity() +
-				" arguments but got " + arguments.Count + ".");
+			throw new UnmatchedFunctionArguments(
+				new Token(TokenType.Call, "Function Call", null, callExpression.parenthesis.Line),
+				"Expected " + callableFunction.Arity() + " arguments but got " + arguments.Count + ".");
 		return callableFunction.Call(this, arguments);
 	}
 
@@ -201,33 +203,40 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		var getExpressionValue = EvaluateExpression(getExpression.expression);
 		if (getExpressionValue is Instance loxInstance)
 			return loxInstance.Get(getExpression.name);
-		throw new OnlyInstancesCanHaveProperty();
+		throw new OnlyInstancesCanHaveProperty(getExpression.name);
 	}
 
-	public sealed class OnlyInstancesCanHaveProperty : Exception { }
+	public sealed class OnlyInstancesCanHaveProperty : InterpreterFailed
+	{
+		public OnlyInstancesCanHaveProperty(Token token, string message = "") : base(token, message) { }
+	}
 
 	public object VisitSetExpression(Expression.SetExpression setExpression)
 	{
 		var setExpressionValue = EvaluateExpression(setExpression.expression);
 		if (setExpressionValue is not Instance loxInstance)
-			throw new OnlyInstancesCanHaveFields();
+			throw new OnlyInstancesCanHaveFields(setExpression.name);
 		var value = EvaluateExpression(setExpression.value);
 		loxInstance.Set(setExpression.name, value);
 		return value;
 	}
 
-	public sealed class OnlyInstancesCanHaveFields : Exception { }
-	public object VisitThisExpression(Expression.ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
-
-	public sealed class FunctionCallIsNotSupportedHere : Exception
+	public sealed class OnlyInstancesCanHaveFields : InterpreterFailed
 	{
-		public FunctionCallIsNotSupportedHere(Token callExpressionParenthesis) : base(
-			callExpressionParenthesis.Lexeme + " Can only call functions and classes.") { }
+		public OnlyInstancesCanHaveFields(Token token, string message = "") : base(token, message) { }
 	}
 
-	public sealed class UnmatchedFunctionArguments : Exception
+	public object VisitThisExpression(Expression.ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
+
+	public sealed class FunctionCallIsNotSupportedHere : InterpreterFailed
 	{
-		public UnmatchedFunctionArguments(string message) : base(message) { }
+		public FunctionCallIsNotSupportedHere(Token callExpressionParenthesis) : base(
+			callExpressionParenthesis, " Can only call functions and classes.") { }
+	}
+
+	public sealed class UnmatchedFunctionArguments : InterpreterFailed
+	{
+		public UnmatchedFunctionArguments(Token token, string message = "") : base(token, message) { }
 	}
 
 	public object VisitPrintStatement(Statement.PrintStatement printStatement)
@@ -334,6 +343,12 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public readonly object? value;
 		public Return(object? value) => this.value = value;
 	}
+}
+
+public class InterpreterFailed : OperationFailed
+{
+	protected InterpreterFailed(Token token, string message = "") : base(
+		message + " " + token.Lexeme, token.Line) { }
 }
 
 public interface Callable
