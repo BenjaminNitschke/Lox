@@ -27,7 +27,6 @@ public sealed class InterpreterTests
 		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
 			Throws.InstanceOf<Environment.DuplicateVariableName>());
 
-	[Ignore("Fix it later")]
 	[TestCase("a =5;")]
 	[TestCase("print a;")]
 	public void AccessUndefinedVariable(string code) =>
@@ -72,6 +71,13 @@ public sealed class InterpreterTests
 		Assert.That(
 			() => new Interpreter().Interpret(GetStatements(
 				"class Cake { taste() { var adjective = \"delicious\"; print \"The \" + this.flavor + \" cake is \" + adjective + \"!\"; } } var cake = Cake(); var test = cake.random;")),
+			Throws.InstanceOf<Instance.UndefinedProperty>()!);
+
+	[Test]
+	public void AccessSuperClassUndefinedProperty() =>
+		Assert.That(
+			() => new Interpreter().Interpret(GetStatements(
+				"class Cake { } class SuperClass < Cake { bake(){ }} SuperClass().random();")),
 			Throws.InstanceOf<Instance.UndefinedProperty>()!);
 
 	[Test]

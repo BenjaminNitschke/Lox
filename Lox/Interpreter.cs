@@ -5,7 +5,7 @@ namespace Lox;
 // ReSharper disable once ClassTooBig
 public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<object>
 {
-	public Environment environment = new();
+	private Environment environment = new();
 
 	public void Interpret(List<Statement> statements)
 	{
@@ -233,8 +233,6 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		var superClass = (Class)environment.Get(new Token(TokenType.Super, "super", "super", 0));
 		var instanceObject = (Instance)environment.Get(new Token(TokenType.This, "this", "this", 0));
 		var method = superClass.FindMethod(superExpression.method.Lexeme);
-		if (method == null)
-			throw new Instance.UndefinedProperty(superExpression.method.Lexeme);
 		return method?.Bind(instanceObject) ?? new object();
 	}
 
@@ -359,8 +357,6 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		if (superClass != null)
 		{
 			loxClass = new Class(classStatement.name.Lexeme, methods, loxClass);
-			if (environment.enclosing != null)
-				environment = environment.enclosing;
 		}
 		environment.Assign(classStatement.name, loxClass);
 		return new object();

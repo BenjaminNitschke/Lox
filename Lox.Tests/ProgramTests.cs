@@ -74,7 +74,18 @@ public sealed class ProgramTests
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
 		var currentDir = Directory.GetCurrentDirectory();
-		Program.Main(new[] { currentDir + @"\..\..\..\Examples\InvalidSuperClass.lox" });
+		Assert.That(
+			() => Program.Main(new[] { currentDir + @"\..\..\..\Examples\SuperClassMustBeAClass.lox" }),
+			Throws.InstanceOf<SuperClassMustBeAClass>());
+	}
+
+	[Test]
+	public void AccessBaseClassMethodUsingSuperClassInstance()
+	{
+		var stringWriter = new StringWriter();
+		Console.SetOut(stringWriter);
+		var currentDir = Directory.GetCurrentDirectory();
+		Program.Main(new[] { currentDir + @"\..\..\..\Examples\AccessSuperClassInstance.lox" });
 		Assert.That(stringWriter.ToString(), Is.EqualTo("Fry until golden brown.\r\nPipe full of custard and coat with chocolate.\r\n"));
 	}
 
