@@ -1,5 +1,6 @@
 ﻿namespace Lox.Tests;
 
+// ReSharper disable once ClassTooBig
 public sealed class InterpreterTests
 {
 	[TestCase("5 + true")]

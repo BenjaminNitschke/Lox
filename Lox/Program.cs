@@ -38,19 +38,24 @@ public sealed class Program
 			var line = Console.ReadLine();
 			if (string.IsNullOrEmpty(line))
 				return;
-			try
-			{
-				Run(line);
-			}
-			catch (AggregateException ex)
-			{
-				foreach (var inner in ex.InnerExceptions)
-					Console.WriteLine(inner.GetType().Name + " " + inner.Message);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine(ex.GetType().Name + " " + ex.Message);
-			}
+			RunWithTryCatch(line);
 		} while (true);
+	}
+
+	private static void RunWithTryCatch(string line)
+	{
+		try
+		{
+			Run(line);
+		}
+		catch (AggregateException ex)
+		{
+			foreach (var inner in ex.InnerExceptions)
+				Console.WriteLine(inner.GetType().Name + " " + inner.Message);
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine(ex.GetType().Name + " " + ex.Message);
+		}
 	}
 }

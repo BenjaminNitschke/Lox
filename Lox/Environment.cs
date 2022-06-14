@@ -29,11 +29,8 @@ public sealed class Environment
 			return;
 		}
 		if (enclosing == null)
-		{
 			throw new UndefinedVariable(name);
-		}
-		else
-			enclosing.Assign(name, value);
+		enclosing.Assign(name, value);
 	}
 
 	public void Define(string name, object value)
