@@ -1,8 +1,8 @@
 ﻿namespace Lox;
 
-public sealed class Class : Callable
+public sealed class LoxClass : Callable
 {
-	public Class(string name, Dictionary<string, Function> methods, Class? superClass = null)
+	public LoxClass(string name, Dictionary<string, Function> methods, LoxClass? superClass = null)
 	{
 		this.name = name;
 		this.methods = methods;
@@ -11,7 +11,7 @@ public sealed class Class : Callable
 
 	public readonly string name;
 	private readonly Dictionary<string, Function> methods;
-	private readonly Class? superClass;
+	private readonly LoxClass? superClass;
 
 	public int Arity()
 	{

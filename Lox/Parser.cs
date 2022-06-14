@@ -364,16 +364,12 @@ public sealed class Parser
 	private bool ParseGroupingExpression(out Expression? groupingExpression)
 	{
 		groupingExpression = null;
-		if (Match(TokenType.LeftParenthesis))
-		{
-			var expression = ParseExpression();
-			Consume(TokenType.RightParenthesis);
-			{
-				groupingExpression = new Expression.GroupingExpression(expression);
-				return true;
-			}
-		}
-		return false;
+		if (!Match(TokenType.LeftParenthesis))
+			return false;
+		var expression = ParseExpression();
+		Consume(TokenType.RightParenthesis);
+		groupingExpression = new Expression.GroupingExpression(expression);
+		return true;
 	}
 
 	private Token Consume(TokenType type, string message = "")
@@ -427,15 +423,17 @@ public sealed class Parser
 		public MissingLeftBrace(Token token, string message = "") : base(token, message) { }
 	}
 
+	public class ParsingFailed : OperationFailed
+	{
+		protected ParsingFailed(Token token, string message = "") : base(message + " " + token.Type, token.Line) { }
+	}
+
 	private bool Match(params TokenType[] tokenTypes)
 	{
-		foreach (var type in tokenTypes)
-			if (Check(type))
-			{
-				Advance();
-				return true;
-			}
-		return false;
+		if (!tokenTypes.Any(Check))
+			return false;
+		Advance();
+		return true;
 	}
 
 	private bool Check(TokenType tokenType)
@@ -452,11 +450,5 @@ public sealed class Parser
 		return Previous();
 	}
 }
-
-public class ParsingFailed : OperationFailed
-{
-	protected ParsingFailed(Token token, string message = "") : base(message + " " + token.Type, token.Line) { }
-}
-
 
 
