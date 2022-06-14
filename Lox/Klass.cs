@@ -1,8 +1,9 @@
 ﻿namespace Lox;
 
-public sealed class LoxClass : Callable
+// ReSharper disable once IdentifierTypo
+public sealed class Klass : Callable
 {
-	public LoxClass(string name, Dictionary<string, Function> methods, LoxClass? superClass = null)
+	public Klass(string name, Dictionary<string, Function> methods, Klass? superClass = null)
 	{
 		this.name = name;
 		this.methods = methods;
@@ -11,7 +12,7 @@ public sealed class LoxClass : Callable
 
 	public readonly string name;
 	private readonly Dictionary<string, Function> methods;
-	private readonly LoxClass? superClass;
+	private readonly Klass? superClass;
 
 	public int Arity()
 	{

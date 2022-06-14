@@ -230,7 +230,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	public object VisitSuperExpression(Expression.SuperExpression superExpression)
 	{
-		var superClass = (LoxClass)environment.Get(new Token(TokenType.Super, "super", "super", 0));
+		var superClass = (Klass)environment.Get(new Token(TokenType.Super, "super", "super", 0));
 		var instanceObject = (Instance)environment.Get(new Token(TokenType.This, "this", "this", 0));
 		var method = superClass.FindMethod(superExpression.method.Lexeme);
 		return method?.Bind(instanceObject) ?? new object();
@@ -355,9 +355,9 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		environment.Define(classStatement.name.Lexeme, new object());
 		var methods = classStatement.methods.ToDictionary(method => method.name.Lexeme,
 			method => new Function(method, environment, false));
-		var loxClass = new LoxClass(classStatement.name.Lexeme, methods);
+		var loxClass = new Klass(classStatement.name.Lexeme, methods);
 		if (superClass != null)
-			loxClass = new LoxClass(classStatement.name.Lexeme, methods, loxClass);
+			loxClass = new Klass(classStatement.name.Lexeme, methods, loxClass);
 		environment.Assign(classStatement.name, loxClass);
 		return new object();
 	}
@@ -368,7 +368,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		if (classStatement.superClass != null)
 		{
 			superClass = EvaluateExpression(classStatement.superClass);
-			if (superClass is not LoxClass)
+			if (superClass is not Klass)
 				throw new SuperClassMustBeAClass(classStatement.superClass.name);
 		}
 		return superClass;

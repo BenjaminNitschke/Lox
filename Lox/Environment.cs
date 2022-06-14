@@ -2,7 +2,7 @@
 
 public sealed class Environment
 {
-	public readonly Environment? enclosing;
+	private readonly Environment? enclosing;
 	private readonly Dictionary<string, object> values = new();
 	public Environment() => enclosing = null;
 	public Environment(Environment enclosing) => this.enclosing = enclosing;
