@@ -247,6 +247,12 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public UnmatchedFunctionArguments(Token token, string message = "") : base(token, message) { }
 	}
 
+	public class InterpreterFailed : OperationFailed
+	{
+		protected InterpreterFailed(Token token, string message = "") : base(
+			message + " " + token.Lexeme, token.Line) { }
+	}
+
 	public object VisitPrintStatement(Statement.PrintStatement printStatement)
 	{
 		var value = EvaluateExpression(printStatement.expression);
@@ -332,7 +338,31 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		throw new Return(value);
 	}
 
+	public sealed class Return : Exception
+	{
+		public readonly object? value;
+		public Return(object? value) => this.value = value;
+	}
+
 	public object VisitClassStatement(Statement.ClassStatement classStatement)
+	{
+		var superClass = CheckSuperClassAndEvaluate(classStatement);
+		if (classStatement.superClass != null && superClass != null)
+		{
+			environment = new Environment(environment);
+			environment.Define("super", superClass);
+		}
+		environment.Define(classStatement.name.Lexeme, new object());
+		var methods = classStatement.methods.ToDictionary(method => method.name.Lexeme,
+			method => new Function(method, environment, false));
+		var loxClass = new Class(classStatement.name.Lexeme, methods);
+		if (superClass != null)
+			loxClass = new Class(classStatement.name.Lexeme, methods, loxClass);
+		environment.Assign(classStatement.name, loxClass);
+		return new object();
+	}
+
+	private object? CheckSuperClassAndEvaluate(Statement.ClassStatement classStatement)
 	{
 		object? superClass = null;
 		if (classStatement.superClass != null)
@@ -341,43 +371,13 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			if (superClass is not Class)
 				throw new SuperClassMustBeAClass(classStatement.superClass.name);
 		}
-		if (classStatement.superClass != null && superClass != null)
-		{
-			environment = new Environment(environment);
-			environment.Define("super", superClass);
-		}
-		environment.Define(classStatement.name.Lexeme, new object());
-		var methods = new Dictionary<string, Function>();
-		foreach (var method in classStatement.methods)
-		{
-			var function = new Function(method, environment, false);
-			methods.Add(method.name.Lexeme, function);
-		}
-		var loxClass = new Class(classStatement.name.Lexeme, methods);
-		if (superClass != null)
-		{
-			loxClass = new Class(classStatement.name.Lexeme, methods, loxClass);
-		}
-		environment.Assign(classStatement.name, loxClass);
-		return new object();
+		return superClass;
 	}
 
-	public sealed class Return : Exception
+	public sealed class SuperClassMustBeAClass : OperationFailed
 	{
-		public readonly object? value;
-		public Return(object? value) => this.value = value;
+		public SuperClassMustBeAClass(Token token) : base(token.Lexeme, token.Line) { }
 	}
-}
-
-public sealed class SuperClassMustBeAClass : OperationFailed
-{
-	public SuperClassMustBeAClass(Token token) : base(token.Lexeme, token.Line) { }
-}
-
-public class InterpreterFailed : OperationFailed
-{
-	protected InterpreterFailed(Token token, string message = "") : base(
-		message + " " + token.Lexeme, token.Line) { }
 }
 
 public interface Callable
