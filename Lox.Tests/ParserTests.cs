@@ -1,4 +1,6 @@
-﻿namespace Lox.Tests;
+﻿using Lox.Expressions;
+
+namespace Lox.Tests;
 
 public sealed class ParserTests
 {

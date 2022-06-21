@@ -9,4 +9,8 @@
     <WarningsAsErrors />
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Lox.Expressions\Lox.Expressions.csproj" />
+  </ItemGroup>
+
 </Project>

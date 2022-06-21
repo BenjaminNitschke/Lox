@@ -1,4 +1,4 @@
-﻿namespace Lox;
+﻿namespace Lox.Expressions;
 
 public abstract class Expression
 {

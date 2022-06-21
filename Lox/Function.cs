@@ -1,4 +1,6 @@
-﻿namespace Lox;
+﻿using Lox.Expressions;
+
+namespace Lox;
 
 public sealed class Function : Callable
 {

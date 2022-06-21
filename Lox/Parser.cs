@@ -1,4 +1,6 @@
-﻿namespace Lox;
+﻿using Lox.Expressions;
+
+namespace Lox;
 
 // ReSharper disable once ClassTooBig
 public sealed class Parser

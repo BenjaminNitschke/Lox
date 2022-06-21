@@ -1,4 +1,6 @@
-﻿namespace Lox.Tests;
+﻿using Lox.Expressions;
+
+namespace Lox.Tests;
 
 // ReSharper disable once ClassTooBig
 public sealed class InterpreterTests
