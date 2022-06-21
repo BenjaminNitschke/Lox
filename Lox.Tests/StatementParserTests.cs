@@ -6,29 +6,29 @@ public sealed class ParserTests
 {
 	[TestCase("/ 2 30")]
 	public void ParseInvalidFactorBinaryExpression(string code) =>
-		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
+		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<StatementParser.UnknownExpression>());
 
 	[Test]
 	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
+		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<StatementParser.UnknownExpression>());
 
 	[Test]
 	public void ParseMissingClosingParenthesisGroupingExpression() =>
 		Assert.That(() => GetParser("(a + b").Parse(),
-			Throws.InstanceOf<Parser.MissingClosingParenthesis>());
+			Throws.InstanceOf<StatementParser.MissingClosingParenthesis>());
 
 	[Test]
 	public void ParseMissingVariableNameExpression() =>
-		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<Parser.MissingVariableName>());
+		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<StatementParser.MissingVariableName>());
 
 	[Test]
 	public void ParseMissingSemicolonExpression() =>
-		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<Parser.MissingSemicolon>());
+		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<StatementParser.MissingSemicolon>());
 
 	[Test]
 	public void ParseMissingBrace() =>
 		Assert.That(() => GetParser("{ a + b; ").Parse(),
-			Throws.InstanceOf<Parser.MissingRightBrace>());
+			Throws.InstanceOf<StatementParser.MissingRightBrace>());
 
 	[Test]
 	public void TestArgumentsMoreThanAllowed()
@@ -49,7 +49,7 @@ public sealed class ParserTests
 	[Test]
 	public void FunctionMissingLeftBrace() =>
 		Assert.That(() => GetParser("fun test();").Parse(),
-			Throws.InstanceOf<Parser.MissingLeftBrace>());
+			Throws.InstanceOf<StatementParser.MissingLeftBrace>());
 
 	private static string GenerateFunctionArguments(int count)
 	{
@@ -69,7 +69,7 @@ public sealed class ParserTests
 		TokenType expectedTokenType)
 	{
 		var resultExpression =
-			new Parser(new Scanner(code).Tokens).Expressions.FirstOrDefault() as
+			new StatementParser(new Scanner(code).Tokens).Expressions.FirstOrDefault() as
 				LiteralExpression;
 		Assert.That(resultExpression, Is.InstanceOf<LiteralExpression>());
 		Assert.That(resultExpression?.Literal?.ToString(), Is.EqualTo(expectedValue));
@@ -127,7 +127,7 @@ public sealed class ParserTests
 	[Test]
 	public void ParseInvalidTargetAssignmentExpression() =>
 		Assert.That(() => GetParser("1 = b").Parse(),
-			Throws.InstanceOf<Parser.InvalidAssignmentTarget>());
+			Throws.InstanceOf<StatementParser.InvalidAssignmentTarget>());
 
 	[Test]
 	public void ParseAssignmentExpression()
@@ -179,7 +179,7 @@ public sealed class ParserTests
 		Assert.That(GetParser("if(true) print 5; else print 6;").Parse()[0],
 			Is.InstanceOf<IfStatement>());
 
-	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);
+	private static StatementParser GetParser(string code) => new(new Scanner(code).Tokens);
 
 	private static int GetExpressionsCount(Expression expression) =>
 		expression switch

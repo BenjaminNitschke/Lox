@@ -39,7 +39,7 @@ public sealed class InterpreterTests
 	[TestCase("while")]
 	public void WhileWithoutOpeningBracket(string code) =>
 		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
-			Throws.InstanceOf<Parser.MissingLeftParenthesis>()!);
+			Throws.InstanceOf<StatementParser.MissingLeftParenthesis>()!);
 
 	[Test]
 	public void FunctionWithUnMatchingArguments() =>
@@ -202,6 +202,6 @@ public sealed class InterpreterTests
 		Assert.That(stringWriter.ToString(), Is.EqualTo("<fn sayHi>\r\n"));
 	}
 
-	private static List<Statement> GetStatements(string code) => new Parser(new Scanner(code).Tokens).Parse();
-	private static IReadOnlyList<Expression> GetParsedExpressions(string code) => new Parser(new Scanner(code).Tokens).Expressions;
+	private static List<Statement> GetStatements(string code) => new StatementParser(new Scanner(code).Tokens).Parse();
+	private static IReadOnlyList<Expression> GetParsedExpressions(string code) => new StatementParser(new Scanner(code).Tokens).Expressions;
 }
