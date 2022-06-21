@@ -6,7 +6,7 @@ namespace Lox;
 // ReSharper disable once ClassTooBig
 public class ExpressionInterpreter : ExpressionVisitor<object>
 {
-	private protected Environment environment = new();
+	protected Environment CurrentEnvironment { get; set; } = new();
 	protected object EvaluateExpression(Expression expression) => expression.Accept(this);
 	public object VisitLiteralExpression(LiteralExpression literal) => literal.Literal ?? new object();
 
@@ -154,12 +154,12 @@ public class ExpressionInterpreter : ExpressionVisitor<object>
 	public object VisitAssignmentExpression(AssignmentExpression assignmentExpression)
 	{
 		var value = EvaluateExpression(assignmentExpression.value);
-		environment.Assign(assignmentExpression.name, value);
+		CurrentEnvironment.Assign(assignmentExpression.name, value);
 		return value;
 	}
 
 	public object VisitVariableExpression(VariableExpression variableExpression) =>
-		environment.Get(variableExpression.name);
+		CurrentEnvironment.Get(variableExpression.name);
 
 	public object VisitLogicalExpression(LogicalExpression logicalExpression)
 	{
@@ -236,12 +236,12 @@ public class ExpressionInterpreter : ExpressionVisitor<object>
 			message + " " + token.Lexeme, token.Line) { }
 	}
 
-	public object VisitThisExpression(ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
+	public object VisitThisExpression(ThisExpression thisExpression) => CurrentEnvironment.Get(thisExpression.keyword);
 
 	public object VisitSuperExpression(SuperExpression superExpression)
 	{
-		var superClass = (Klass)environment.Get(new Token(TokenType.Super, "super", "super", 0));
-		var instanceObject = (Instance)environment.Get(new Token(TokenType.This, "this", "this", 0));
+		var superClass = (Klass)CurrentEnvironment.Get(new Token(TokenType.Super, "super", "super", 0));
+		var instanceObject = (Instance)CurrentEnvironment.Get(new Token(TokenType.This, "this", "this", 0));
 		var method = superClass.FindMethod(superExpression.method.Lexeme);
 		return method?.Bind(instanceObject) ?? new object();
 	}

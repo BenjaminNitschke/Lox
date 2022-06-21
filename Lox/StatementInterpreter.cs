@@ -41,28 +41,28 @@ public sealed class StatementInterpreter : ExpressionInterpreter, StatementVisit
 		var value = new object();
 		if (variableStatement.initializer != null)
 			value = EvaluateExpression(variableStatement.initializer);
-		environment.Define(variableStatement.name.Lexeme, value);
+		CurrentEnvironment.Define(variableStatement.name.Lexeme, value);
 		return new object();
 	}
 
 	public object VisitBlockStatement(BlockStatement blockStatement)
 	{
-		ExecuteBlock(blockStatement.statements, new Environment(environment));
+		ExecuteBlock(blockStatement.statements, new Environment(CurrentEnvironment));
 		return new object();
 	}
 
 	public void ExecuteBlock(List<Statement> statements, Environment innerEnvironment)
 	{
-		var previous = environment;
+		var previous = CurrentEnvironment;
 		try
 		{
-			environment = innerEnvironment;
+			CurrentEnvironment = innerEnvironment;
 			foreach (var statement in statements)
 				Execute(statement);
 		}
 		finally
 		{
-			environment = previous;
+			CurrentEnvironment = previous;
 		}
 	}
 
@@ -84,8 +84,8 @@ public sealed class StatementInterpreter : ExpressionInterpreter, StatementVisit
 
 	public object VisitFunctionStatement(FunctionStatement functionStatement)
 	{
-		var loxFunction = new Function(functionStatement, environment, false);
-		environment.Define(functionStatement.name.Lexeme, loxFunction);
+		var loxFunction = new Function(functionStatement, CurrentEnvironment, false);
+		CurrentEnvironment.Define(functionStatement.name.Lexeme, loxFunction);
 		return new object();
 	}
 
@@ -108,16 +108,16 @@ public sealed class StatementInterpreter : ExpressionInterpreter, StatementVisit
 		var superClass = CheckSuperClassAndEvaluate(classStatement);
 		if (classStatement.superClass != null && superClass != null)
 		{
-			environment = new Environment(environment);
-			environment.Define("super", superClass);
+			CurrentEnvironment = new Environment(CurrentEnvironment);
+			CurrentEnvironment.Define("super", superClass);
 		}
-		environment.Define(classStatement.name.Lexeme, new object());
+		CurrentEnvironment.Define(classStatement.name.Lexeme, new object());
 		var methods = classStatement.methods.ToDictionary(method => method.name.Lexeme,
-			method => new Function(method, environment, false));
+			method => new Function(method, CurrentEnvironment, false));
 		var loxClass = new Klass(classStatement.name.Lexeme, methods);
 		if (superClass != null)
 			loxClass = new Klass(classStatement.name.Lexeme, methods, loxClass);
-		environment.Assign(classStatement.name, loxClass);
+		CurrentEnvironment.Assign(classStatement.name, loxClass);
 		return new object();
 	}
 
