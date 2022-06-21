@@ -9,7 +9,7 @@ public sealed class InterpreterTests
 	public void EvaluatePlusExpressionWithInvalidOperand(string code) =>
 		Assert.That(
 			() => new Interpreter().VisitBinaryExpression(
-				(Expression.BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
+				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
 			Throws.InstanceOf<Interpreter.OperandMustBeANumberOrString>());
 
 	[TestCase("5 > true")]
@@ -17,12 +17,12 @@ public sealed class InterpreterTests
 	public void EvaluateBinaryNumberExpressionWithInvalidOperand(string code) =>
 		Assert.That(
 			() => new Interpreter().VisitBinaryExpression(
-				(Expression.BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
+				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
 			Throws.InstanceOf<Interpreter.OperandMustBeANumber>());
 
 	[TestCase("-\"m\"")]
 	public void EvaluateUnaryNumberExpressionWithInvalidOperand(string code) =>
-		Assert.That(() => new Interpreter().VisitUnaryExpression((Expression.UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
+		Assert.That(() => new Interpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
 			Throws.InstanceOf<Interpreter.OperandMustBeANumber>());
 
 	[TestCase("{var a =5; var a = 6;}")]
@@ -86,14 +86,14 @@ public sealed class InterpreterTests
 	[Test]
 	public void EvaluateLiteralExpression()
 	{
-		var result = new Interpreter().VisitLiteralExpression((Expression.LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
+		var result = new Interpreter().VisitLiteralExpression((LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(1));
 	}
 
 	[TestCase("8 * ( 5 + 2)", 56)]
 	public void EvaluateGroupingExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitBinaryExpression((Expression.BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new Interpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(56));
 	}
 
@@ -112,7 +112,7 @@ public sealed class InterpreterTests
 	[TestCase("8 * 4", 32)]
 	public void EvaluateBinaryExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitBinaryExpression((Expression.BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new Interpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
@@ -121,7 +121,7 @@ public sealed class InterpreterTests
 	[TestCase("!5", false)]
 	public void EvaluateUnaryExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitUnaryExpression((Expression.UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new Interpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 

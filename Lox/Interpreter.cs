@@ -16,12 +16,12 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 
 	private void Execute(Statement statement) => statement.Accept(this);
 	private object EvaluateExpression(Expression expression) => expression.Accept(this);
-	public object VisitLiteralExpression(Expression.LiteralExpression literal) => literal.Literal ?? new object();
+	public object VisitLiteralExpression(LiteralExpression literal) => literal.Literal ?? new object();
 
-	public object VisitGroupingExpression(Expression.GroupingExpression groupingExpression) =>
+	public object VisitGroupingExpression(GroupingExpression groupingExpression) =>
 		EvaluateExpression(groupingExpression.expression);
 
-	public object VisitBinaryExpression(Expression.BinaryExpression binaryExpression)
+	public object VisitBinaryExpression(BinaryExpression binaryExpression)
 	{
 		var left = EvaluateExpression(binaryExpression.LeftExpression);
 		var right = EvaluateExpression(binaryExpression.RightExpression);
@@ -29,7 +29,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 	}
 
 	// ReSharper disable once CyclomaticComplexity
-	private static object EvaluateBinaryExpression(Expression.BinaryExpression binaryExpression, object left,
+	private static object EvaluateBinaryExpression(BinaryExpression binaryExpression, object left,
 		object right) =>
 		binaryExpression.OperatorToken.Type switch
 		{
@@ -47,56 +47,56 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			_ => new object() // ncrunch: no coverage
 		};
 
-	private static object EvaluateStarOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateStarOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left * (double)right;
 	}
 
-	private static object EvaluateSlashOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateSlashOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left / (double)right;
 	}
 
-	private static object EvaluateMinusOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateMinusOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left - (double)right;
 	}
 
-	private static object EvaluateLessEqualOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateLessEqualOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left <= (double)right;
 	}
 
-	private static object EvaluateLessOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateLessOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left < (double)right;
 	}
 
-	private static object EvaluateGreaterEqualOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateGreaterEqualOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left >= (double)right;
 	}
 
-	private static object EvaluateGreaterOperatorExpression(Expression.BinaryExpression binaryExpression,
+	private static object EvaluateGreaterOperatorExpression(BinaryExpression binaryExpression,
 		object left, object right)
 	{
 		CheckNumberOperand(binaryExpression.OperatorToken, left, right);
 		return (double)left > (double)right;
 	}
 
-	private static object EvaluatePlusOperatorExpression(Expression.BinaryExpression binaryExpression, object left,
+	private static object EvaluatePlusOperatorExpression(BinaryExpression binaryExpression, object left,
 		object right) =>
 		left switch
 		{
@@ -134,7 +134,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public OperandMustBeANumber(Token expressionOperator) : base(expressionOperator) { }
 	}
 
-	public object VisitUnaryExpression(Expression.UnaryExpression unaryExpression)
+	public object VisitUnaryExpression(UnaryExpression unaryExpression)
 	{
 		var rightExpressionValue = EvaluateExpression(unaryExpression.RightExpression);
 		return unaryExpression.OperatorToken.Type switch
@@ -145,7 +145,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		};
 	}
 
-	private static object EvaluateMinusOperatorExpression(Expression.UnaryExpression unaryExpression,
+	private static object EvaluateMinusOperatorExpression(UnaryExpression unaryExpression,
 		object rightExpressionValue)
 	{
 		CheckNumberOperand(unaryExpression.OperatorToken, rightExpressionValue);
@@ -159,17 +159,17 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			_ => true
 		};
 
-	public object VisitAssignmentExpression(Expression.AssignmentExpression assignmentExpression)
+	public object VisitAssignmentExpression(AssignmentExpression assignmentExpression)
 	{
 		var value = EvaluateExpression(assignmentExpression.value);
 		environment.Assign(assignmentExpression.name, value);
 		return value;
 	}
 
-	public object VisitVariableExpression(Expression.VariableExpression variableExpression) =>
+	public object VisitVariableExpression(VariableExpression variableExpression) =>
 		environment.Get(variableExpression.name);
 
-	public object VisitLogicalExpression(Expression.LogicalExpression logicalExpression)
+	public object VisitLogicalExpression(LogicalExpression logicalExpression)
 	{
 		var leftExpressionValue = EvaluateExpression(logicalExpression.left);
 		if (logicalExpression.operatorToken.Type == TokenType.Or)
@@ -185,7 +185,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return EvaluateExpression(logicalExpression.right);
 	}
 
-	public object VisitCallExpression(Expression.CallExpression callExpression)
+	public object VisitCallExpression(CallExpression callExpression)
 	{
 		var callee = EvaluateExpression(callExpression.callee);
 		var arguments = callExpression.arguments.Select(EvaluateExpression).ToList();
@@ -199,7 +199,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return callableFunction.Call(this, arguments);
 	}
 
-	public object VisitGetExpression(Expression.GetExpression getExpression)
+	public object VisitGetExpression(GetExpression getExpression)
 	{
 		var getExpressionValue = EvaluateExpression(getExpression.expression);
 		if (getExpressionValue is Instance loxInstance)
@@ -212,7 +212,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public OnlyInstancesCanHaveProperty(Token token, string message = "") : base(token, message) { }
 	}
 
-	public object VisitSetExpression(Expression.SetExpression setExpression)
+	public object VisitSetExpression(SetExpression setExpression)
 	{
 		var setExpressionValue = EvaluateExpression(setExpression.expression);
 		if (setExpressionValue is not Instance loxInstance)
@@ -227,9 +227,9 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public OnlyInstancesCanHaveFields(Token token, string message = "") : base(token, message) { }
 	}
 
-	public object VisitThisExpression(Expression.ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
+	public object VisitThisExpression(ThisExpression thisExpression) => environment.Get(thisExpression.keyword);
 
-	public object VisitSuperExpression(Expression.SuperExpression superExpression)
+	public object VisitSuperExpression(SuperExpression superExpression)
 	{
 		var superClass = (Klass)environment.Get(new Token(TokenType.Super, "super", "super", 0));
 		var instanceObject = (Instance)environment.Get(new Token(TokenType.This, "this", "this", 0));

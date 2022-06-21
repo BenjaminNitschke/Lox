@@ -36,11 +36,11 @@ public sealed class Parser
 	private Statement ParseClassDeclaration()
 	{
 		var name = Consume(TokenType.Identifier, "Expect class name");
-		Expression.VariableExpression? superClass = null;
+		VariableExpression? superClass = null;
 		if (Match(TokenType.Less))
 		{
 			Consume(TokenType.Identifier, "Expect Super Class Name");
-			superClass = new Expression.VariableExpression(Previous());
+			superClass = new VariableExpression(Previous());
 		}
 		Consume(TokenType.LeftBrace, "Expect '{' before class body");
 		var methods = new List<Statement.FunctionStatement>();
@@ -112,7 +112,7 @@ public sealed class Parser
 		var body = ParseStatement();
 		body = AddIncrementerBodyStatements(incrementer, body);
 		condition ??=
-			new Expression.LiteralExpression(true, new Token(TokenType.True, "True", "True", 0));
+			new LiteralExpression(true, new Token(TokenType.True, "True", "True", 0));
 		body = new Statement.WhileStatement(condition, body);
 		body = AddInitializerBodyStatements(initializer, body);
 		return body;
@@ -221,13 +221,13 @@ public sealed class Parser
 		{
 			var equals = Previous();
 			var value = ParseAssignmentExpression();
-			if (expression is Expression.VariableExpression variableExpression)
+			if (expression is VariableExpression variableExpression)
 			{
 				var name = variableExpression.name;
-				return new Expression.AssignmentExpression(name, value);
+				return new AssignmentExpression(name, value);
 			}
-			if (expression is Expression.GetExpression getExpression)
-				return new Expression.SetExpression(getExpression.expression, getExpression.name, value);
+			if (expression is GetExpression getExpression)
+				return new SetExpression(getExpression.expression, getExpression.name, value);
 			throw new InvalidAssignmentTarget(equals);
 		}
 		return expression;
@@ -240,7 +240,7 @@ public sealed class Parser
 		{
 			var operatorToken = Previous();
 			var right = ParseAndExpression();
-			expression = new Expression.LogicalExpression(expression, right, operatorToken);
+			expression = new LogicalExpression(expression, right, operatorToken);
 		}
 		return expression;
 	}
@@ -252,7 +252,7 @@ public sealed class Parser
 		{
 			var operatorToken = Previous();
 			var right = ParseEqualityExpression();
-			expression = new Expression.LogicalExpression(expression, right, operatorToken);
+			expression = new LogicalExpression(expression, right, operatorToken);
 		}
 		return expression;
 	}
@@ -267,7 +267,7 @@ public sealed class Parser
 		var expression = ParseComparisonExpressions();
 		while (Match(TokenType.EqualEqual, TokenType.BangEqual))
 			expression =
-				new Expression.BinaryExpression(expression, Previous(), ParseComparisonExpressions());
+				new BinaryExpression(expression, Previous(), ParseComparisonExpressions());
 		return expression;
 	}
 
@@ -276,7 +276,7 @@ public sealed class Parser
 		var expression = ParseArithmeticExpressions();
 		while (Match(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual))
 			expression =
-				new Expression.BinaryExpression(expression, Previous(), ParseArithmeticExpressions());
+				new BinaryExpression(expression, Previous(), ParseArithmeticExpressions());
 		return expression;
 	}
 
@@ -284,7 +284,7 @@ public sealed class Parser
 	{
 		var expression = ParseFactorExpressions();
 		while (Match(TokenType.Plus, TokenType.Minus))
-			expression = new Expression.BinaryExpression(expression,
+			expression = new BinaryExpression(expression,
 				Previous(), ParseFactorExpressions());
 		return expression;
 	}
@@ -293,14 +293,14 @@ public sealed class Parser
 	{
 		var expression = ParseUnaryExpressions();
 		while (Match(TokenType.Slash, TokenType.Star))
-			expression = new Expression.BinaryExpression(expression,
+			expression = new BinaryExpression(expression,
 				Previous(), ParseUnaryExpressions());
 		return expression;
 	}
 
 	private Expression ParseUnaryExpressions() =>
 		Match(TokenType.Bang, TokenType.Minus)
-			? new Expression.UnaryExpression(Previous(), ParseUnaryExpressions())
+			? new UnaryExpression(Previous(), ParseUnaryExpressions())
 			: ParseFunctionCall();
 
 	private Expression ParseFunctionCall()
@@ -312,7 +312,7 @@ public sealed class Parser
 			else if (Match(TokenType.Dot))
 			{
 				var name = Consume(TokenType.Identifier, "Expect property name after '.'.");
-				expression = new Expression.GetExpression(expression, name);
+				expression = new GetExpression(expression, name);
 			}
 			else
 				break;
@@ -327,37 +327,37 @@ public sealed class Parser
 			{
 				if (arguments.Count >= 255)
 					throw new ArgumentOutOfRangeException(
-						(callee as Expression.LiteralExpression)?.Literal?.ToString(),
+						(callee as LiteralExpression)?.Literal?.ToString(),
 						"Cannot have more than 255 arguments");
 				arguments.Add(ParseExpression());
 			} while (Match(TokenType.Comma));
 		var parenthesis = Consume(TokenType.RightParenthesis, "Expect ')' after arguments");
-		return new Expression.CallExpression(callee, parenthesis, arguments);
+		return new CallExpression(callee, parenthesis, arguments);
 	}
 
 	// ReSharper disable once MethodTooLong
 	private Expression ParsePrimaryExpressions()
 	{
 		if (Match(TokenType.False))
-			return new Expression.LiteralExpression(false, Previous());
+			return new LiteralExpression(false, Previous());
 		if (Match(TokenType.True))
-			return new Expression.LiteralExpression(true, Previous());
+			return new LiteralExpression(true, Previous());
 		if (Match(TokenType.Nil))
-			return new Expression.LiteralExpression(null, Previous());
+			return new LiteralExpression(null, Previous());
 		if (Match(TokenType.Number, TokenType.String))
-			return new Expression.LiteralExpression(Previous().Literal, Previous());
+			return new LiteralExpression(Previous().Literal, Previous());
 		if (Match(TokenType.Super))
 		{
 			var keyword = Previous();
 			Consume(TokenType.Dot, "Expect '.' after 'super'.");
 			var method = Consume(TokenType.Identifier,
 				"Expect superclass method name.");
-			return new Expression.SuperExpression(keyword, method);
+			return new SuperExpression(keyword, method);
 		}
 		if (Match(TokenType.This))
-			return new Expression.ThisExpression(Previous());
+			return new ThisExpression(Previous());
 		if (Match(TokenType.Identifier))
-			return new Expression.VariableExpression(Previous());
+			return new VariableExpression(Previous());
 		if (ParseGroupingExpression(out var groupingExpression))
 			return groupingExpression ?? throw new UnknownExpression(Peek());
 		throw new UnknownExpression(Peek());
@@ -375,7 +375,7 @@ public sealed class Parser
 			return false;
 		var expression = ParseExpression();
 		Consume(TokenType.RightParenthesis);
-		groupingExpression = new Expression.GroupingExpression(expression);
+		groupingExpression = new GroupingExpression(expression);
 		return true;
 	}
 
