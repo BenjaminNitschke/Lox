@@ -6,29 +6,29 @@ public sealed class ParserTests
 {
 	[TestCase("/ 2 30")]
 	public void ParseInvalidFactorBinaryExpression(string code) =>
-		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<ParsingFailed.UnknownExpression>());
+		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
 
 	[Test]
 	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<ParsingFailed.UnknownExpression>());
+		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<Parser.UnknownExpression>());
 
 	[Test]
 	public void ParseMissingClosingParenthesisGroupingExpression() =>
 		Assert.That(() => GetParser("(a + b").Parse(),
-			Throws.InstanceOf<ParsingFailed.MissingClosingParenthesis>());
+			Throws.InstanceOf<Parser.MissingClosingParenthesis>());
 
 	[Test]
 	public void ParseMissingVariableNameExpression() =>
-		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<ParsingFailed.MissingVariableName>());
+		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<Parser.MissingVariableName>());
 
 	[Test]
 	public void ParseMissingSemicolonExpression() =>
-		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<ParsingFailed.MissingSemicolon>());
+		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<Parser.MissingSemicolon>());
 
 	[Test]
 	public void ParseMissingBrace() =>
 		Assert.That(() => GetParser("{ a + b; ").Parse(),
-			Throws.InstanceOf<ParsingFailed.MissingRightBrace>());
+			Throws.InstanceOf<Parser.MissingRightBrace>());
 
 	[Test]
 	public void TestArgumentsMoreThanAllowed()
@@ -49,7 +49,7 @@ public sealed class ParserTests
 	[Test]
 	public void FunctionMissingLeftBrace() =>
 		Assert.That(() => GetParser("fun test();").Parse(),
-			Throws.InstanceOf<ParsingFailed.MissingLeftBrace>());
+			Throws.InstanceOf<Parser.MissingLeftBrace>());
 
 	private static string GenerateFunctionArguments(int count)
 	{

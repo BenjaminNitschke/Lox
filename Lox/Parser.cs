@@ -359,8 +359,13 @@ public sealed class Parser
 		if (Match(TokenType.Identifier))
 			return new Expression.VariableExpression(Previous());
 		if (ParseGroupingExpression(out var groupingExpression))
-			return groupingExpression ?? throw new ParsingFailed.UnknownExpression(Peek());
-		throw new ParsingFailed.UnknownExpression(Peek());
+			return groupingExpression ?? throw new UnknownExpression(Peek());
+		throw new UnknownExpression(Peek());
+	}
+
+	public sealed class UnknownExpression : ParsingFailed
+	{
+		public UnknownExpression(Token token) : base(token) { }
 	}
 
 	private bool ParseGroupingExpression(out Expression? groupingExpression)
@@ -380,14 +385,50 @@ public sealed class Parser
 			return Advance();
 		throw type switch
 		{
-			TokenType.RightParenthesis => new ParsingFailed.MissingClosingParenthesis(new Token(type, "", null, Peek().Line)),
-			TokenType.Identifier => new ParsingFailed.MissingVariableName(new Token(type, "", null, Peek().Line), message),
-			TokenType.Semicolon => new ParsingFailed.MissingSemicolon(new Token(type, "", null, Peek().Line)),
-			TokenType.RightBrace => new ParsingFailed.MissingRightBrace(new Token(type, "", null, Peek().Line), message),
-			TokenType.LeftParenthesis => new ParsingFailed.MissingLeftParenthesis(new Token(type, "", null, Peek().Line), message),
-			TokenType.LeftBrace => new ParsingFailed.MissingLeftBrace(new Token(type, "", null, Peek().Line), message),
+			TokenType.RightParenthesis => new MissingClosingParenthesis(new Token(type, "", null, Peek().Line)),
+			TokenType.Identifier => new MissingVariableName(new Token(type, "", null, Peek().Line), message),
+			TokenType.Semicolon => new MissingSemicolon(new Token(type, "", null, Peek().Line)),
+			TokenType.RightBrace => new MissingRightBrace(new Token(type, "", null, Peek().Line), message),
+			TokenType.LeftParenthesis => new MissingLeftParenthesis(new Token(type, "", null, Peek().Line), message),
+			TokenType.LeftBrace => new MissingLeftBrace(new Token(type, "", null, Peek().Line), message),
 			_ => new InvalidOperationException() //ncrunch: no coverage
 		};
+	}
+
+	public sealed class MissingLeftBrace : ParsingFailed
+	{
+		public MissingLeftBrace(Token token, string message = "") : base(token, message) { }
+	}
+
+	public sealed class MissingLeftParenthesis : ParsingFailed
+	{
+		public MissingLeftParenthesis(Token token, string message = "") : base(token, message) { }
+	}
+
+	public sealed class MissingRightBrace : ParsingFailed
+	{
+		public MissingRightBrace(Token token, string message = "") : base(token, message) { }
+	}
+
+	public sealed class MissingVariableName : ParsingFailed
+	{
+		public MissingVariableName(Token token, string message = "") : base(token, message) { }
+	}
+
+	public sealed class MissingClosingParenthesis : ParsingFailed
+	{
+		public MissingClosingParenthesis(Token token) : base(token) { }
+	}
+
+	public sealed class MissingSemicolon : ParsingFailed
+	{
+		public MissingSemicolon(Token token) : base(token) { }
+	}
+
+	public class ParsingFailed : OperationFailed
+	{
+		protected ParsingFailed(Token token, string message = "") : base(message + " " + token.Type,
+			token.Line) { }
 	}
 
 	private bool Match(params TokenType[] tokenTypes)

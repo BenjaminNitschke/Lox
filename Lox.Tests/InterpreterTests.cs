@@ -39,7 +39,7 @@ public sealed class InterpreterTests
 	[TestCase("while")]
 	public void WhileWithoutOpeningBracket(string code) =>
 		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
-			Throws.InstanceOf<ParsingFailed.MissingLeftParenthesis>()!);
+			Throws.InstanceOf<Parser.MissingLeftParenthesis>()!);
 
 	[Test]
 	public void FunctionWithUnMatchingArguments() =>
