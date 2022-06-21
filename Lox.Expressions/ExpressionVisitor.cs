@@ -9,13 +9,13 @@ public interface ExpressionVisitor<out T> : ClassExpressionVisitor<T>
 	T VisitVariableExpression(VariableExpression variableExpression);
 	T VisitAssignmentExpression(AssignmentExpression assignmentExpression);
 	T VisitLogicalExpression(LogicalExpression logicalExpression);
-	T VisitCallExpression(CallExpression callExpression);
-	T VisitGetExpression(GetExpression getExpression);
-	T VisitSetExpression(SetExpression setExpression);
 }
 
 public interface ClassExpressionVisitor<out T>
 {
+	T VisitCallExpression(CallExpression callExpression);
+	T VisitGetExpression(GetExpression getExpression);
+	T VisitSetExpression(SetExpression setExpression);
 	T VisitThisExpression(ThisExpression thisExpression);
 	T VisitSuperExpression(SuperExpression superExpression);
 }
