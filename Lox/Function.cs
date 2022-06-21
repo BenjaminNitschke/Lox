@@ -4,14 +4,14 @@ namespace Lox;
 
 public sealed class Function : Callable
 {
-	public Function(Statement.FunctionStatement declaration, Environment closure, bool isInitializer)
+	public Function(FunctionStatement declaration, Environment closure, bool isInitializer)
 	{
 		this.declaration = declaration;
 		this.closure = closure;
 		this.isInitializer = isInitializer;
 	}
 
-	private readonly Statement.FunctionStatement declaration;
+	private readonly FunctionStatement declaration;
 	private readonly Environment closure;
 	private readonly bool isInitializer;
 

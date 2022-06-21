@@ -2,13 +2,13 @@
 
 public interface StatementVisitor<out T>
 {
-	T VisitPrintStatement(Statement.PrintStatement printStatement);
-	T VisitExpressionStatement(Statement.ExpressionStatement expressionStatement);
-	T VisitVariableStatement(Statement.VariableStatement variableStatement);
-	T VisitBlockStatement(Statement.BlockStatement blockStatement);
-	T VisitIfStatement(Statement.IfStatement ifStatement);
-	T VisitWhileStatement(Statement.WhileStatement whileStatement);
-	T VisitFunctionStatement(Statement.FunctionStatement functionStatement);
-	T VisitReturnStatement(Statement.ReturnStatement returnStatement);
-	T VisitClassStatement(Statement.ClassStatement classStatement);
+	T VisitPrintStatement(PrintStatement printStatement);
+	T VisitExpressionStatement(ExpressionStatement expressionStatement);
+	T VisitVariableStatement(VariableStatement variableStatement);
+	T VisitBlockStatement(BlockStatement blockStatement);
+	T VisitIfStatement(IfStatement ifStatement);
+	T VisitWhileStatement(WhileStatement whileStatement);
+	T VisitFunctionStatement(FunctionStatement functionStatement);
+	T VisitReturnStatement(ReturnStatement returnStatement);
+	T VisitClassStatement(ClassStatement classStatement);
 }

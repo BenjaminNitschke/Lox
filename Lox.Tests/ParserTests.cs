@@ -150,7 +150,7 @@ public sealed class ParserTests
 	{
 		var statements = GetParser("print 5;").Parse();
 		Assert.That(statements.Count, Is.EqualTo(1));
-		Assert.That(statements[0], Is.InstanceOf<Statement.PrintStatement>());
+		Assert.That(statements[0], Is.InstanceOf<PrintStatement>());
 	}
 
 	[Test]
@@ -158,26 +158,26 @@ public sealed class ParserTests
 	{
 		var statements = GetParser("var a =5;").Parse();
 		Assert.That(statements.Count, Is.EqualTo(1));
-		Assert.That(statements[0], Is.InstanceOf<Statement.VariableStatement>());
+		Assert.That(statements[0], Is.InstanceOf<VariableStatement>());
 	}
 
 	[Test]
 	public void ParseBlockStatement()
 	{
 		var blockStatement =
-			GetParser("{ var a =5; \n print a; }").Parse()[0] as Statement.BlockStatement;
+			GetParser("{ var a =5; \n print a; }").Parse()[0] as BlockStatement;
 		Assert.That(blockStatement!.statements.Count, Is.EqualTo(2));
 	}
 
 	[Test]
 	public void ParseIfStatement() =>
 		Assert.That(GetParser("if(true) print 5;").Parse()[0],
-			Is.InstanceOf<Statement.IfStatement>());
+			Is.InstanceOf<IfStatement>());
 
 	[Test]
 	public void ParseIfElseStatement() =>
 		Assert.That(GetParser("if(true) print 5; else print 6;").Parse()[0],
-			Is.InstanceOf<Statement.IfStatement>());
+			Is.InstanceOf<IfStatement>());
 
 	private static Parser GetParser(string code) => new(new Scanner(code).Tokens);
 

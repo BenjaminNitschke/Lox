@@ -254,7 +254,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 			message + " " + token.Lexeme, token.Line) { }
 	}
 
-	public object VisitPrintStatement(Statement.PrintStatement printStatement)
+	public object VisitPrintStatement(PrintStatement printStatement)
 	{
 		var value = EvaluateExpression(printStatement.expression);
 		Console.Out.WriteLine(Stringify(value));
@@ -275,10 +275,10 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		}
 	}
 
-	public object VisitExpressionStatement(Statement.ExpressionStatement expressionStatement) =>
+	public object VisitExpressionStatement(ExpressionStatement expressionStatement) =>
 		EvaluateExpression(expressionStatement.expression);
 
-	public object VisitVariableStatement(Statement.VariableStatement variableStatement)
+	public object VisitVariableStatement(VariableStatement variableStatement)
 	{
 		var value = new object();
 		if (variableStatement.initializer != null)
@@ -287,7 +287,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return new object();
 	}
 
-	public object VisitBlockStatement(Statement.BlockStatement blockStatement)
+	public object VisitBlockStatement(BlockStatement blockStatement)
 	{
 		ExecuteBlock(blockStatement.statements, new Environment(environment));
 		return new object();
@@ -308,7 +308,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		}
 	}
 
-	public object VisitIfStatement(Statement.IfStatement ifStatement)
+	public object VisitIfStatement(IfStatement ifStatement)
 	{
 		if (IsTruthy(EvaluateExpression(ifStatement.condition)))
 			Execute(ifStatement.thenStatement);
@@ -317,21 +317,21 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return new object();
 	}
 
-	public object VisitWhileStatement(Statement.WhileStatement whileStatement)
+	public object VisitWhileStatement(WhileStatement whileStatement)
 	{
 		while (IsTruthy(EvaluateExpression(whileStatement.condition)))
 			Execute(whileStatement.bodyStatement);
 		return new object();
 	}
 
-	public object VisitFunctionStatement(Statement.FunctionStatement functionStatement)
+	public object VisitFunctionStatement(FunctionStatement functionStatement)
 	{
 		var loxFunction = new Function(functionStatement, environment, false);
 		environment.Define(functionStatement.name.Lexeme, loxFunction);
 		return new object();
 	}
 
-	public object VisitReturnStatement(Statement.ReturnStatement returnStatement)
+	public object VisitReturnStatement(ReturnStatement returnStatement)
 	{
 		object? value = null;
 		if (returnStatement.value != null)
@@ -345,7 +345,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		public Return(object? value) => this.value = value;
 	}
 
-	public object VisitClassStatement(Statement.ClassStatement classStatement)
+	public object VisitClassStatement(ClassStatement classStatement)
 	{
 		var superClass = CheckSuperClassAndEvaluate(classStatement);
 		if (classStatement.superClass != null && superClass != null)
@@ -363,7 +363,7 @@ public sealed class Interpreter : ExpressionVisitor<object>, StatementVisitor<ob
 		return new object();
 	}
 
-	private object? CheckSuperClassAndEvaluate(Statement.ClassStatement classStatement)
+	private object? CheckSuperClassAndEvaluate(ClassStatement classStatement)
 	{
 		object? superClass = null;
 		if (classStatement.superClass != null)

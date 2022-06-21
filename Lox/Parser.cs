@@ -43,14 +43,14 @@ public sealed class Parser
 			superClass = new VariableExpression(Previous());
 		}
 		Consume(TokenType.LeftBrace, "Expect '{' before class body");
-		var methods = new List<Statement.FunctionStatement>();
+		var methods = new List<FunctionStatement>();
 		while (!Check(TokenType.RightBrace) && !IsAtEnd())
 			methods.Add(ParseFunctionStatement("function"));
 		Consume(TokenType.RightBrace, "Expect '}' after class body");
-		return new Statement.ClassStatement(name, methods, superClass);
+		return new ClassStatement(name, methods, superClass);
 	}
 
-	private Statement.FunctionStatement ParseFunctionStatement(string kind)
+	private FunctionStatement ParseFunctionStatement(string kind)
 	{
 		var name = Consume(TokenType.Identifier, "Expect " + kind + " name.");
 		Consume(TokenType.LeftParenthesis, "Expect '(' after " + kind + " name.");
@@ -65,7 +65,7 @@ public sealed class Parser
 		Consume(TokenType.RightParenthesis, "Expect ')' after parameters.");
 		Consume(TokenType.LeftBrace, "Expect '{' before " + kind + " body.");
 		var body = ParseBlockStatement();
-		return new Statement.FunctionStatement(name, parameters, body);
+		return new FunctionStatement(name, parameters, body);
 	}
 
 	private Statement ParseVariableDeclarationStatement()
@@ -75,7 +75,7 @@ public sealed class Parser
 		if (Match(TokenType.Equal))
 			initializer = ParseExpression();
 		Consume(TokenType.Semicolon);
-		return new Statement.VariableStatement(name, initializer);
+		return new VariableStatement(name, initializer);
 	}
 
 	private Statement ParseStatement() =>
@@ -90,7 +90,7 @@ public sealed class Parser
 						: Match(TokenType.While)
 							? ParseWhileStatement()
 							: Match(TokenType.LeftBrace)
-								? new Statement.BlockStatement(ParseBlockStatement())
+								? new BlockStatement(ParseBlockStatement())
 								: ParseExpressionStatement();
 
 	private Statement ParseReturnStatement()
@@ -100,7 +100,7 @@ public sealed class Parser
 		if (!Check(TokenType.Semicolon))
 			value = ParseExpression();
 		Consume(TokenType.Semicolon, "Expect ';' after return value");
-		return new Statement.ReturnStatement(value);
+		return new ReturnStatement(value);
 	}
 
 	private Statement ParseForStatement()
@@ -113,7 +113,7 @@ public sealed class Parser
 		body = AddIncrementerBodyStatements(incrementer, body);
 		condition ??=
 			new LiteralExpression(true, new Token(TokenType.True, "True", "True", 0));
-		body = new Statement.WhileStatement(condition, body);
+		body = new WhileStatement(condition, body);
 		body = AddInitializerBodyStatements(initializer, body);
 		return body;
 	}
@@ -121,16 +121,16 @@ public sealed class Parser
 	private static Statement AddInitializerBodyStatements(Statement? initializer, Statement body)
 	{
 		if (initializer != null)
-			body = new Statement.BlockStatement(new List<Statement> { initializer, body });
+			body = new BlockStatement(new List<Statement> { initializer, body });
 		return body;
 	}
 
 	private static Statement AddIncrementerBodyStatements(Expression? increment, Statement body)
 	{
 		if (increment != null)
-			body = new Statement.BlockStatement(new List<Statement>
+			body = new BlockStatement(new List<Statement>
 			{
-				body, new Statement.ExpressionStatement(increment)
+				body, new ExpressionStatement(increment)
 			});
 		return body;
 	}
@@ -174,14 +174,14 @@ public sealed class Parser
 		Statement? elseStatement = null;
 		if (Match(TokenType.Else))
 			elseStatement = ParseStatement();
-		return new Statement.IfStatement(conditionExpression, thenStatement, elseStatement);
+		return new IfStatement(conditionExpression, thenStatement, elseStatement);
 	}
 
 	private Statement ParsePrintStatement()
 	{
 		var value = ParseExpression();
 		Consume(TokenType.Semicolon);
-		return new Statement.PrintStatement(value);
+		return new PrintStatement(value);
 	}
 
 	private Statement ParseWhileStatement()
@@ -190,7 +190,7 @@ public sealed class Parser
 		var condition = ParseExpression();
 		Consume(TokenType.RightParenthesis, "Expect ')' after while condition");
 		var body = ParseStatement();
-		return new Statement.WhileStatement(condition, body);
+		return new WhileStatement(condition, body);
 	}
 
 	private List<Statement> ParseBlockStatement()
@@ -209,7 +209,7 @@ public sealed class Parser
 	{
 		var expression = ParseExpression();
 		Consume(TokenType.Semicolon);
-		return new Statement.ExpressionStatement(expression);
+		return new ExpressionStatement(expression);
 	}
 
 	private Expression ParseExpression() => ParseAssignmentExpression();
