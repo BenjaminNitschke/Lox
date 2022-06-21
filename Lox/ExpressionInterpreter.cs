@@ -6,7 +6,7 @@ namespace Lox;
 // ReSharper disable once ClassTooBig
 public class ExpressionInterpreter : ExpressionVisitor<object>
 {
-	protected Environment environment = new();
+	private protected Environment environment = new();
 	protected object EvaluateExpression(Expression expression) => expression.Accept(this);
 	public object VisitLiteralExpression(LiteralExpression literal) => literal.Literal ?? new object();
 
