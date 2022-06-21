@@ -1,6 +1,6 @@
 ﻿namespace Expressions;
 
-public interface ExpressionVisitor<out T>
+public interface ExpressionVisitor<out T> : ClassExpressionVisitor<T>
 {
 	T VisitLiteralExpression(LiteralExpression literal);
 	T VisitGroupingExpression(GroupingExpression groupingExpression);
@@ -12,6 +12,10 @@ public interface ExpressionVisitor<out T>
 	T VisitCallExpression(CallExpression callExpression);
 	T VisitGetExpression(GetExpression getExpression);
 	T VisitSetExpression(SetExpression setExpression);
+}
+
+public interface ClassExpressionVisitor<out T>
+{
 	T VisitThisExpression(ThisExpression thisExpression);
 	T VisitSuperExpression(SuperExpression superExpression);
 }
