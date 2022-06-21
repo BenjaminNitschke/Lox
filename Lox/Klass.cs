@@ -20,11 +20,11 @@ public sealed class Klass : Callable
 		return initializer?.Arity() ?? 0;
 	}
 
-	public object Call(Interpreter interpreter, List<object> arguments)
+	public object Call(StatementInterpreter statementInterpreter, List<object> arguments)
 	{
 		var instance = new Instance(this);
 		var initializer = FindMethod("init");
-		initializer?.Bind(instance).Call(interpreter, arguments);
+		initializer?.Bind(instance).Call(statementInterpreter, arguments);
 		return instance;
 	}
 

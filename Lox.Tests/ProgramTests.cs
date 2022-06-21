@@ -76,7 +76,7 @@ public sealed class ProgramTests
 		var currentDir = Directory.GetCurrentDirectory();
 		Assert.That(
 			() => Program.Main(new[] { currentDir + @"\..\..\..\Examples\SuperClassMustBeAClass.lox" }),
-			Throws.InstanceOf<Interpreter.SuperClassMustBeAClass>()!);
+			Throws.InstanceOf<StatementInterpreter.SuperClassMustBeAClass>()!);
 	}
 
 	[Test]

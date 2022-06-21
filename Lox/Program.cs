@@ -2,7 +2,7 @@
 
 public sealed class Program
 {
-	private static readonly Interpreter Interpreter = new();
+	private static readonly StatementInterpreter StatementInterpreter = new();
 
 	public static void Main(string[] args)
 	{
@@ -26,7 +26,7 @@ public sealed class Program
 	private static void Run(string code, string filePath = "")
 	{
 		var statements = new StatementParser(new Scanner(code, filePath).Tokens).Parse();
-		Interpreter.Interpret(statements);
+		StatementInterpreter.Interpret(statements);
 	}
 
 	private static void RunPrompt()

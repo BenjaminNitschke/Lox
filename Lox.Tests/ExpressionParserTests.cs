@@ -2,33 +2,33 @@
 
 namespace Lox.Tests;
 
-public sealed class ParserTests
+public sealed class ExpressionParserTests
 {
 	[TestCase("/ 2 30")]
 	public void ParseInvalidFactorBinaryExpression(string code) =>
-		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<StatementParser.UnknownExpression>());
+		Assert.That(() => GetParser(code).Parse(), Throws.InstanceOf<ExpressionParser.UnknownExpression>());
 
 	[Test]
 	public void ParseUnknownExpression() =>
-		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<StatementParser.UnknownExpression>());
+		Assert.That(() => GetParser("/").Parse(), Throws.InstanceOf<ExpressionParser.UnknownExpression>());
 
 	[Test]
 	public void ParseMissingClosingParenthesisGroupingExpression() =>
 		Assert.That(() => GetParser("(a + b").Parse(),
-			Throws.InstanceOf<StatementParser.MissingClosingParenthesis>());
+			Throws.InstanceOf<ExpressionParser.MissingClosingParenthesis>());
 
 	[Test]
 	public void ParseMissingVariableNameExpression() =>
-		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<StatementParser.MissingVariableName>());
+		Assert.That(() => GetParser("var;").Parse(), Throws.InstanceOf<ExpressionParser.MissingVariableName>());
 
 	[Test]
 	public void ParseMissingSemicolonExpression() =>
-		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<StatementParser.MissingSemicolon>());
+		Assert.That(() => GetParser("a + b").Parse(), Throws.InstanceOf<ExpressionParser.MissingSemicolon>());
 
 	[Test]
 	public void ParseMissingBrace() =>
 		Assert.That(() => GetParser("{ a + b; ").Parse(),
-			Throws.InstanceOf<StatementParser.MissingRightBrace>());
+			Throws.InstanceOf<ExpressionParser.MissingRightBrace>());
 
 	[Test]
 	public void TestArgumentsMoreThanAllowed()
@@ -49,7 +49,7 @@ public sealed class ParserTests
 	[Test]
 	public void FunctionMissingLeftBrace() =>
 		Assert.That(() => GetParser("fun test();").Parse(),
-			Throws.InstanceOf<StatementParser.MissingLeftBrace>());
+			Throws.InstanceOf<ExpressionParser.MissingLeftBrace>());
 
 	private static string GenerateFunctionArguments(int count)
 	{
@@ -127,7 +127,7 @@ public sealed class ParserTests
 	[Test]
 	public void ParseInvalidTargetAssignmentExpression() =>
 		Assert.That(() => GetParser("1 = b").Parse(),
-			Throws.InstanceOf<StatementParser.InvalidAssignmentTarget>());
+			Throws.InstanceOf<ExpressionParser.InvalidAssignmentTarget>());
 
 	[Test]
 	public void ParseAssignmentExpression()

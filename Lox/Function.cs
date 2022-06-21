@@ -24,16 +24,16 @@ public sealed class Function : Callable
 
 	public int Arity() => declaration.functionParams.Count;
 
-	public object Call(Interpreter interpreter, List<object> arguments)
+	public object Call(StatementInterpreter statementInterpreter, List<object> arguments)
 	{
 		var environment = new Environment(closure);
 		for (var i = 0; i < declaration.functionParams.Count; i++)
 			environment.Define(declaration.functionParams[i].Lexeme, arguments[i]);
 		try
 		{
-			interpreter.ExecuteBlock(declaration.body, environment);
+			statementInterpreter.ExecuteBlock(declaration.body, environment);
 		}
-		catch (Interpreter.Return returnValue)
+		catch (StatementInterpreter.Return returnValue)
 		{
 			return isInitializer
 				? closure.Get(new Token(TokenType.This, "this", null, 0))

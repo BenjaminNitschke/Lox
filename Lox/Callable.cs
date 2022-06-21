@@ -3,5 +3,5 @@
 public interface Callable
 {
 	int Arity();
-	object Call(Interpreter interpreter, List<object> arguments);
+	object Call(StatementInterpreter statementInterpreter, List<object> arguments);
 }

@@ -3,97 +3,97 @@
 namespace Lox.Tests;
 
 // ReSharper disable once ClassTooBig
-public sealed class InterpreterTests
+public sealed class StatementInterpreterTests
 {
 	[TestCase("5 + true")]
 	public void EvaluatePlusExpressionWithInvalidOperand(string code) =>
 		Assert.That(
-			() => new Interpreter().VisitBinaryExpression(
+			() => new StatementInterpreter().VisitBinaryExpression(
 				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
-			Throws.InstanceOf<Interpreter.OperandMustBeANumberOrString>());
+			Throws.InstanceOf<ExpressionInterpreter.OperandMustBeANumberOrString>());
 
 	[TestCase("5 > true")]
 	[TestCase("5 * true")]
 	public void EvaluateBinaryNumberExpressionWithInvalidOperand(string code) =>
 		Assert.That(
-			() => new Interpreter().VisitBinaryExpression(
+			() => new StatementInterpreter().VisitBinaryExpression(
 				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
-			Throws.InstanceOf<Interpreter.OperandMustBeANumber>());
+			Throws.InstanceOf<ExpressionInterpreter.OperandMustBeANumber>());
 
 	[TestCase("-\"m\"")]
 	public void EvaluateUnaryNumberExpressionWithInvalidOperand(string code) =>
-		Assert.That(() => new Interpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
-			Throws.InstanceOf<Interpreter.OperandMustBeANumber>());
+		Assert.That(() => new StatementInterpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
+			Throws.InstanceOf<ExpressionInterpreter.OperandMustBeANumber>());
 
 	[TestCase("{var a =5; var a = 6;}")]
 	public void DefineDuplicateVariableName(string code) =>
-		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
+		Assert.That(() => new StatementInterpreter().Interpret(GetStatements(code)),
 			Throws.InstanceOf<Environment.DuplicateVariableName>());
 
 	[TestCase("a =5;")]
 	[TestCase("print a;")]
 	public void AccessUndefinedVariable(string code) =>
-		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
+		Assert.That(() => new StatementInterpreter().Interpret(GetStatements(code)),
 			Throws.InstanceOf<Environment.UndefinedVariable>()!);
 
 	[TestCase("while")]
 	public void WhileWithoutOpeningBracket(string code) =>
-		Assert.That(() => new Interpreter().Interpret(GetStatements(code)),
-			Throws.InstanceOf<StatementParser.MissingLeftParenthesis>()!);
+		Assert.That(() => new StatementInterpreter().Interpret(GetStatements(code)),
+			Throws.InstanceOf<ExpressionParser.MissingLeftParenthesis>()!);
 
 	[Test]
 	public void FunctionWithUnMatchingArguments() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.UnmatchedFunctionArguments>());
+				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.UnmatchedFunctionArguments>());
 
 	[Test]
 	public void FunctionCallNotSupportedException() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi = 10;" +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.FunctionCallIsNotSupportedHere>()!);
+				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.FunctionCallIsNotSupportedHere>()!);
 
 	[Test]
 	public void OnlyInstancesCanHaveProperty() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi." +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<Interpreter.OnlyInstancesCanHaveProperty>()!);
+				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.OnlyInstancesCanHaveProperty>()!);
 
 	[Test]
 	public void OnlyInstancesCanHaveFields() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"class Cake { taste() { var adjective = \"delicious\"; print \"The \" + this.flavor + \" cake is \" + adjective + \"!\"; } } var cake = Cake(); cake = 10; cake.flavor = \"German chocolate\";")),
-			Throws.InstanceOf<Interpreter.OnlyInstancesCanHaveFields>()!);
+			Throws.InstanceOf<ExpressionInterpreter.OnlyInstancesCanHaveFields>()!);
 
 	[Test]
 	public void AccessUndefinedProperty() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"class Cake { taste() { var adjective = \"delicious\"; print \"The \" + this.flavor + \" cake is \" + adjective + \"!\"; } } var cake = Cake(); var test = cake.random;")),
 			Throws.InstanceOf<Instance.UndefinedProperty>()!);
 
 	[Test]
 	public void AccessSuperClassUndefinedProperty() =>
 		Assert.That(
-			() => new Interpreter().Interpret(GetStatements(
+			() => new StatementInterpreter().Interpret(GetStatements(
 				"class Cake { } class SuperClass < Cake { bake(){ }} SuperClass().random();")),
 			Throws.InstanceOf<Instance.UndefinedProperty>()!);
 
 	[Test]
 	public void EvaluateLiteralExpression()
 	{
-		var result = new Interpreter().VisitLiteralExpression((LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
+		var result = new StatementInterpreter().VisitLiteralExpression((LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(1));
 	}
 
 	[TestCase("8 * ( 5 + 2)", 56)]
 	public void EvaluateGroupingExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new StatementInterpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(56));
 	}
 
@@ -112,7 +112,7 @@ public sealed class InterpreterTests
 	[TestCase("8 * 4", 32)]
 	public void EvaluateBinaryExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new StatementInterpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
@@ -121,7 +121,7 @@ public sealed class InterpreterTests
 	[TestCase("!5", false)]
 	public void EvaluateUnaryExpression(string code, object expectedValue)
 	{
-		var result = new Interpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result = new StatementInterpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
@@ -136,7 +136,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements(code));
+		new StatementInterpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
 	}
 
@@ -146,7 +146,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements(code));
+		new StatementInterpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
 	}
 
@@ -158,7 +158,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements(code));
+		new StatementInterpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
 	}
 
@@ -168,7 +168,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements(code));
+		new StatementInterpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
 	}
 
@@ -178,7 +178,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements(code));
+		new StatementInterpreter().Interpret(GetStatements(code));
 		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
 	}
 
@@ -187,7 +187,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
+		new StatementInterpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
 			"sayHi(\"Dear\", \"Reader\");"));
 		Assert.That(stringWriter.ToString(), Is.EqualTo("Hi, Dear Reader!\r\n"));
 	}
@@ -197,7 +197,7 @@ public sealed class InterpreterTests
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new Interpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
+		new StatementInterpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
 			"print sayHi;"));
 		Assert.That(stringWriter.ToString(), Is.EqualTo("<fn sayHi>\r\n"));
 	}
