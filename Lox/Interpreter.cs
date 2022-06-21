@@ -1,5 +1,5 @@
 ﻿using System.Globalization;
-using Lox.Expressions;
+using Expressions;
 
 namespace Lox;
 

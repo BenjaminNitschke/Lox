@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lox.Expressions\Lox.Expressions.csproj" />
+    <ProjectReference Include="..\Lox.Expressions\Expressions.csproj" />
   </ItemGroup>
 
 </Project>

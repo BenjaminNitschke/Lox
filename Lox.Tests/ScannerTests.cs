@@ -1,4 +1,4 @@
-using Lox.Expressions;
+using Expressions;
 
 namespace Lox.Tests;
 
