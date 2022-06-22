@@ -177,7 +177,7 @@ public class ExpressionInterpreter : ExpressionVisitor<object>
 		return EvaluateExpression(logicalExpression.right);
 	}
 
-	public virtual object VisitCallExpression(CallExpression callExpression) => new(); //ncrunch: no coverage since this method is overridden in derived class
+	public virtual object VisitCallExpression(CallExpression callExpression) => new();
 
 	public sealed class FunctionCallIsNotSupportedHere : InterpreterFailed
 	{

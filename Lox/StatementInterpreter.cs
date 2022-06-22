@@ -140,6 +140,7 @@ public sealed class StatementInterpreter : ExpressionInterpreter, StatementVisit
 
 	public override object VisitCallExpression(CallExpression callExpression)
 	{
+		base.VisitCallExpression(callExpression);
 		var callee = EvaluateExpression(callExpression.callee);
 		var arguments = callExpression.arguments.Select(EvaluateExpression).ToList();
 		if (callee is not Callable callableFunction)
