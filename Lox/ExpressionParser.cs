@@ -44,6 +44,11 @@ public class ExpressionParser
 		return expression;
 	}
 
+	public class InvalidAssignmentTarget : ParsingFailed
+	{
+		public InvalidAssignmentTarget(Token token) : base(token) { }
+	}
+
 	private Expression ParseAndExpression()
 	{
 		var expression = ParseEqualityExpression();
@@ -54,11 +59,6 @@ public class ExpressionParser
 			expression = new LogicalExpression(expression, right, operatorToken);
 		}
 		return expression;
-	}
-
-	public class InvalidAssignmentTarget : ParsingFailed
-	{
-		public InvalidAssignmentTarget(Token token) : base(token) { }
 	}
 
 	private Expression ParseEqualityExpression()

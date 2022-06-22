@@ -101,8 +101,9 @@ public sealed class ProgramTests
 				"0\r\n1\r\n1\r\n2\r\n3\r\n5\r\n8\r\n13\r\n21\r\n34\r\n55\r\n89\r\n144\r\n233\r\n377\r\n610\r\n987\r\n1597\r\n2584\r\n4181\r\n6765\r\n"));
 	}
 
-	[Category("Slow")]
+	//ncrunch: no coverage start
 	[Test]
+	[Category("Slow")]
 	public void PrintFibonacciNumbersWithRecursion()
 	{
 		var stringWriter = new StringWriter();
@@ -112,7 +113,7 @@ public sealed class ProgramTests
 		Assert.That(stringWriter.ToString(),
 			Is.EqualTo(
 				"0\r\n1\r\n1\r\n2\r\n3\r\n5\r\n8\r\n13\r\n21\r\n34\r\n55\r\n89\r\n144\r\n233\r\n377\r\n610\r\n987\r\n1597\r\n2584\r\n4181\r\n"));
-	}
+	} //ncrunch: no coverage end
 
 	[Test]
 	public void Run99BottlesBeerProgram()

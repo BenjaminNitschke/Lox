@@ -61,19 +61,18 @@ public sealed class ExpressionParserTests
 		return argumentsBuilder.ToString();
 	}
 
-	[TestCase("false", "False", TokenType.False)]
-	[TestCase("true", "True", TokenType.True)]
-	[TestCase("nil", null, TokenType.Nil)]
-	[TestCase("25", "25", TokenType.Number)]
-	public void ParseSinglePrimaryExpression(string code, string expectedValue,
-		TokenType expectedTokenType)
+	[TestCase("false", TokenType.False, "False")]
+	[TestCase("true", TokenType.True, "True")]
+	[TestCase("nil", TokenType.Nil, null)]
+	[TestCase("25", TokenType.Number, "25")]
+	public void ParseSinglePrimaryExpression(string code, TokenType expectedTokenType,
+		string expectedLiteralToString)
 	{
-		var resultExpression =
-			new StatementParser(new Scanner(code).Tokens).Expressions.FirstOrDefault() as
-				LiteralExpression;
-		Assert.That(resultExpression, Is.InstanceOf<LiteralExpression>());
-		Assert.That(resultExpression?.Literal?.ToString(), Is.EqualTo(expectedValue));
-		Assert.That(resultExpression?.TokenType.Type, Is.EqualTo(expectedTokenType));
+		var result = new StatementParser(new Scanner(code).Tokens).Expressions.FirstOrDefault();
+		Assert.That(result, Is.InstanceOf<LiteralExpression>());
+		var literalExpression = (LiteralExpression)result!;
+		Assert.That(literalExpression.Token.Type, Is.EqualTo(expectedTokenType));
+		Assert.That(literalExpression.Literal?.ToString(), Is.EqualTo(expectedLiteralToString));
 	}
 
 	[TestCase("!false", "!", "False")]

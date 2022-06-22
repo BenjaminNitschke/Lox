@@ -39,9 +39,14 @@ public sealed class Scanner
 	private void ScanToken()
 	{
 		var c = Advance();
-		_ = GetNextTokenSingleCharacter(c) ?? GetNextTokenComparisons(c) ??
-			GetCommentOrSlash(c) ?? IgnoreWhiteSpace(c) ?? HandleNewLine(c) ??
-			HandleString(c) ?? HandleDigit(c) ?? throw new UnexpectedCharacter(c, line, filePath);
+		_ = GetNextTokenSingleCharacter(c) ??
+			GetNextTokenComparisons(c) ??
+			GetCommentOrSlash(c) ??
+			IgnoreWhiteSpace(c) ??
+			HandleNewLine(c) ??
+			HandleString(c) ??
+			HandleDigit(c) ??
+			throw new UnexpectedCharacter(c, line, filePath);
 	}
 
 	public sealed class UnexpectedCharacter : OperationFailed
@@ -128,7 +133,7 @@ public sealed class Scanner
 	private Token AddToken(TokenType type, object? literal = null)
 	{
 		var token = new Token(type, code.Substring(startTokenPosition, current - startTokenPosition), literal, line);
-		// should be done at caller
+		//TODO: should be done at caller
 		tokens.Add(token);
 		return token;
 	}
@@ -158,7 +163,7 @@ public sealed class Scanner
 		}
 		if (IsAtEnd())
 			throw new UnterminatedString(line);
-		// The closing "
+		//TODO: remove comments, The closing "
 		Advance();
 		// Trim the surrounding quotes.
 		return AddToken(TokenType.String, code.Substring(startTokenPosition + 1, current - startTokenPosition - 2));

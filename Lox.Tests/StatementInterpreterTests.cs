@@ -2,7 +2,6 @@
 
 namespace Lox.Tests;
 
-// ReSharper disable once ClassTooBig
 public sealed class StatementInterpreterTests
 {
 	[TestCase("5 + true")]
@@ -22,7 +21,9 @@ public sealed class StatementInterpreterTests
 
 	[TestCase("-\"m\"")]
 	public void EvaluateUnaryNumberExpressionWithInvalidOperand(string code) =>
-		Assert.That(() => new StatementInterpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
+		Assert.That(
+			() => new StatementInterpreter().VisitUnaryExpression(
+				(UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!),
 			Throws.InstanceOf<ExpressionInterpreter.OperandMustBeANumber>());
 
 	[TestCase("{var a =5; var a = 6;}")]
@@ -46,21 +47,24 @@ public sealed class StatementInterpreterTests
 		Assert.That(
 			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.UnmatchedFunctionArguments>());
+				"sayHi(\"Dear\");")),
+			Throws.InstanceOf<ExpressionInterpreter.UnmatchedFunctionArguments>());
 
 	[Test]
 	public void FunctionCallNotSupportedException() =>
 		Assert.That(
 			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi = 10;" +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.FunctionCallIsNotSupportedHere>()!);
+				"sayHi(\"Dear\");")),
+			Throws.InstanceOf<ExpressionInterpreter.FunctionCallIsNotSupportedHere>()!);
 
 	[Test]
 	public void OnlyInstancesCanHaveProperty() =>
 		Assert.That(
 			() => new StatementInterpreter().Interpret(GetStatements(
 				"fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";} sayHi." +
-				"sayHi(\"Dear\");")), Throws.InstanceOf<ExpressionInterpreter.OnlyInstancesCanHaveProperty>()!);
+				"sayHi(\"Dear\");")),
+			Throws.InstanceOf<ExpressionInterpreter.OnlyInstancesCanHaveProperty>()!);
 
 	[Test]
 	public void OnlyInstancesCanHaveFields() =>
@@ -86,14 +90,18 @@ public sealed class StatementInterpreterTests
 	[Test]
 	public void EvaluateLiteralExpression()
 	{
-		var result = new StatementInterpreter().VisitLiteralExpression((LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
+		var result =
+			new StatementInterpreter().VisitLiteralExpression(
+				(LiteralExpression)GetParsedExpressions("1").FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(1));
 	}
 
 	[TestCase("8 * ( 5 + 2)", 56)]
 	public void EvaluateGroupingExpression(string code, object expectedValue)
 	{
-		var result = new StatementInterpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result =
+			new StatementInterpreter().VisitBinaryExpression(
+				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(56));
 	}
 
@@ -110,9 +118,17 @@ public sealed class StatementInterpreterTests
 	[TestCase("5 + \"b\"", "5b")]
 	[TestCase("8 / 4", 2)]
 	[TestCase("8 * 4", 32)]
+	[TestCase("4 * 4 * 4", 64)]
+	[TestCase("1 + 2 + 3 + 4 + 5", 15)]
+	[TestCase("1 + 2 + 3 + 4 - 5", 5)]
+	[TestCase("1 + 2 + 3 + 4 + -5", 5)]
+	[TestCase("1 + 2 * 4", 9)]
+	[TestCase("(1 + 2) * 4", 12)]
 	public void EvaluateBinaryExpression(string code, object expectedValue)
 	{
-		var result = new StatementInterpreter().VisitBinaryExpression((BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result =
+			new StatementInterpreter().VisitBinaryExpression(
+				(BinaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
@@ -121,7 +137,9 @@ public sealed class StatementInterpreterTests
 	[TestCase("!5", false)]
 	public void EvaluateUnaryExpression(string code, object expectedValue)
 	{
-		var result = new StatementInterpreter().VisitUnaryExpression((UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
+		var result =
+			new StatementInterpreter().VisitUnaryExpression(
+				(UnaryExpression)GetParsedExpressions(code).FirstOrDefault()!);
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
@@ -183,25 +201,22 @@ public sealed class StatementInterpreterTests
 	}
 
 	[Test]
-	public void EvaluateFunction()
+	public void PrintFunctionNameAndOutput()
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
-			"sayHi(\"Dear\", \"Reader\");"));
-		Assert.That(stringWriter.ToString(), Is.EqualTo("Hi, Dear Reader!\r\n"));
+		new StatementInterpreter().Interpret(GetStatements(
+			@"fun sayHi(first, last) { print ""Hi, "" + first + "" "" + last + ""!"";}
+print sayHi;
+sayHi(""Dear"", ""Reader"");"));
+		Assert.That(stringWriter.ToString(), Is.EqualTo(@"<fn sayHi>
+Hi, Dear Reader!
+"));
 	}
 
-	[Test]
-	public void PrintFunctionName()
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements("fun sayHi(first, last) { print \"Hi, \" + first + \" \" + last + \"!\";}" +
-			"print sayHi;"));
-		Assert.That(stringWriter.ToString(), Is.EqualTo("<fn sayHi>\r\n"));
-	}
+	private static List<Statement> GetStatements(string code) =>
+		new StatementParser(new Scanner(code).Tokens).Parse();
 
-	private static List<Statement> GetStatements(string code) => new StatementParser(new Scanner(code).Tokens).Parse();
-	private static IReadOnlyList<Expression> GetParsedExpressions(string code) => new StatementParser(new Scanner(code).Tokens).Expressions;
+	private static IReadOnlyList<Expression> GetParsedExpressions(string code) =>
+		new StatementParser(new Scanner(code).Tokens).Expressions;
 }
