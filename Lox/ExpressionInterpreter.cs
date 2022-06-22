@@ -177,19 +177,7 @@ public class ExpressionInterpreter : ExpressionVisitor<object>
 		return EvaluateExpression(logicalExpression.right);
 	}
 
-	public object VisitCallExpression(CallExpression callExpression)
-	{
-		var callee = EvaluateExpression(callExpression.callee);
-		var arguments = callExpression.arguments.Select(EvaluateExpression).ToList();
-		if (callee is not Callable callableFunction)
-			throw new FunctionCallIsNotSupportedHere(new Token(TokenType.Call, "Function Call", null,
-				callExpression.parenthesis.Line));
-		if (arguments.Count != callableFunction.Arity())
-			throw new UnmatchedFunctionArguments(
-				new Token(TokenType.Call, "Function Call", null, callExpression.parenthesis.Line),
-				"Expected " + callableFunction.Arity() + " arguments but got " + arguments.Count + ".");
-		return callableFunction.Call((StatementInterpreter)this, arguments);
-	}
+	public virtual object VisitCallExpression(CallExpression callExpression) => new(); //ncrunch: no coverage since this method is overridden in derived class
 
 	public sealed class FunctionCallIsNotSupportedHere : InterpreterFailed
 	{
