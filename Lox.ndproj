@@ -3126,7 +3126,9 @@ from t in JustMyCode.Types.Where(t =>
    t.Name != "RegisterScene" &&
    !t.IsGeneratedByCompiler &&
    !t.IsRecord &&
-	 // Sub types are also broken in NDepend and don't report if they are records
+   // IsRecord is still broken in NDepend 2022.1.2, skip anything detected as IsImmutable (which includes all proper records)
+   !t.IsImmutable &&
+  // Sub types are also broken in NDepend and don't report if they are records
    !t.Name.Contains("+") &&
 	 
    // Don't advise to declare Global ASP.NET or ApiController methods as static

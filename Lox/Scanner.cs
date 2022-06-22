@@ -39,14 +39,17 @@ public sealed class Scanner
 	private void ScanToken()
 	{
 		var c = Advance();
-		_ = GetNextTokenSingleCharacter(c) ??
+		var token = GetNextTokenSingleCharacter(c) ??
 			GetNextTokenComparisons(c) ??
 			GetCommentOrSlash(c) ??
 			IgnoreWhiteSpace(c) ??
 			HandleNewLine(c) ??
 			HandleString(c) ??
-			HandleDigit(c) ??
+			HandleDigit(c);
+		if (token == null)
 			throw new UnexpectedCharacter(c, line, filePath);
+		if (token.Type != TokenType.Skip)
+			tokens.Add(token);
 	}
 
 	public sealed class UnexpectedCharacter : OperationFailed
@@ -59,32 +62,32 @@ public sealed class Scanner
 	private Token? GetNextTokenSingleCharacter(char c) =>
 		c switch
 		{
-			'(' => AddToken(TokenType.LeftParenthesis),
-			')' => AddToken(TokenType.RightParenthesis),
-			'{' => AddToken(TokenType.LeftBrace),
-			'}' => AddToken(TokenType.RightBrace),
-			',' => AddToken(TokenType.Comma),
-			'.' => AddToken(TokenType.Dot),
-			'-' => AddToken(TokenType.Minus),
-			'+' => AddToken(TokenType.Plus),
-			';' => AddToken(TokenType.Semicolon),
-			'*' => AddToken(TokenType.Star),
+			'(' => CreateToken(TokenType.LeftParenthesis),
+			')' => CreateToken(TokenType.RightParenthesis),
+			'{' => CreateToken(TokenType.LeftBrace),
+			'}' => CreateToken(TokenType.RightBrace),
+			',' => CreateToken(TokenType.Comma),
+			'.' => CreateToken(TokenType.Dot),
+			'-' => CreateToken(TokenType.Minus),
+			'+' => CreateToken(TokenType.Plus),
+			';' => CreateToken(TokenType.Semicolon),
+			'*' => CreateToken(TokenType.Star),
 			_ => null
 		};
 
 	private Token? GetNextTokenComparisons(char c) =>
 		c switch
 		{
-			'!' => AddToken(Match('=')
+			'!' => CreateToken(Match('=')
 				? TokenType.BangEqual
 				: TokenType.Bang),
-			'=' => AddToken(Match('=')
+			'=' => CreateToken(Match('=')
 				? TokenType.EqualEqual
 				: TokenType.Equal),
-			'<' => AddToken(Match('=')
+			'<' => CreateToken(Match('=')
 				? TokenType.LessEqual
 				: TokenType.Less),
-			'>' => AddToken(Match('=')
+			'>' => CreateToken(Match('=')
 				? TokenType.GreaterEqual
 				: TokenType.Greater),
 			_ => null
@@ -95,16 +98,16 @@ public sealed class Scanner
 		if (c != '/')
 			return null;
 		if (!Match('/'))
-			return AddToken(TokenType.Slash);
+			return CreateToken(TokenType.Slash);
 		// A comment goes until the end of the line.
 		while (Peek() != '\n' && !IsAtEnd())
 			Advance();
-		return NoToken();
+		return SkipToken();
 	}
 
 	private static Token? IgnoreWhiteSpace(char c) =>
 		c is ' ' or '\r' or '\t'
-			? NoToken()
+			? SkipToken()
 			: null;
 
 	private Token? HandleNewLine(char c)
@@ -112,7 +115,7 @@ public sealed class Scanner
 		if (c is not '\n')
 			return null;
 		line++;
-		return NoToken();
+		return SkipToken();
 	}
 
 	private Token? HandleString(char c) =>
@@ -128,15 +131,10 @@ public sealed class Scanner
 				: null;
 
 	private char Advance() => code[current++];
-	private static Token NoToken() => new(TokenType.False, "", null, 0);
+	private static Token SkipToken() => new(TokenType.Skip, "", null, 0);
 
-	private Token AddToken(TokenType type, object? literal = null)
-	{
-		var token = new Token(type, code.Substring(startTokenPosition, current - startTokenPosition), literal, line);
-		//TODO: should be done at caller
-		tokens.Add(token);
-		return token;
-	}
+	private Token CreateToken(TokenType type, object? literal = null) =>
+		new(type, code.Substring(startTokenPosition, current - startTokenPosition), literal, line);
 
 	private bool Match(char expected)
 	{
@@ -163,11 +161,12 @@ public sealed class Scanner
 		}
 		if (IsAtEnd())
 			throw new UnterminatedString(line);
-		//TODO: remove comments, The closing "
-		Advance();
-		// Trim the surrounding quotes.
-		return AddToken(TokenType.String, code.Substring(startTokenPosition + 1, current - startTokenPosition - 2));
+		SkipClosingQuote();
+		return CreateToken(TokenType.String,
+			code.Substring(startTokenPosition + 1, current - startTokenPosition - 2));
 	}
+
+	private void SkipClosingQuote() => Advance();
 
 	public sealed class UnterminatedString : Exception
 	{
@@ -182,13 +181,15 @@ public sealed class Scanner
 		while (IsDigit(Peek()))
 			Advance();
 		if (Peek() == '.' && IsDigit(PeekNext()))
-		{
-			// Consume the "."
+			ConsumeDotAndDigitsAfter();
+		return CreateToken(TokenType.Number, double.Parse(code.Substring(startTokenPosition, current - startTokenPosition)));
+	}
+
+	private void ConsumeDotAndDigitsAfter()
+	{
+		Advance();
+		while (IsDigit(Peek()))
 			Advance();
-			while (IsDigit(Peek()))
-				Advance();
-		}
-		return AddToken(TokenType.Number, double.Parse(code.Substring(startTokenPosition, current - startTokenPosition)));
 	}
 
 	private char PeekNext() =>
@@ -201,7 +202,7 @@ public sealed class Scanner
 		while (IsAlphaNumeric(Peek()))
 			Advance();
 		var text = code.Substring(startTokenPosition, current - startTokenPosition);
-		return AddToken(Keywords.TryGetValue(text, out var type)
+		return CreateToken(Keywords.TryGetValue(text, out var type)
 			? type
 			: TokenType.Identifier);
 	}

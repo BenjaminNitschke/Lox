@@ -143,75 +143,32 @@ public sealed class StatementInterpreterTests
 		Assert.That(result, Is.EqualTo(expectedValue));
 	}
 
-	[TestCase("{var a = \"expectedResult\"; print a;}", "expectedResult\r\n")]
-	[TestCase("{var a = 6.0; print a;}", "6\r\n")]
-	[TestCase("{var a=5; a = 6; print a;}", "6\r\n")]
-	[TestCase("{var a=5; a = 6.052; print a;}", "6.052\r\n")]
-	[TestCase("{var a=5; var b = 5; print a + b;}", "10\r\n")]
-	[TestCase("{var a= true; a = !a; print a;}", "False\r\n")]
-	[TestCase("var b = true; { var b = false; b = true; print b;}", "True\r\n")]
+	[TestCase("{var a = \"expectedResult\"; print a;}", "expectedResult")]
+	[TestCase("{var a = 6.0; print a;}", "6")]
+	[TestCase("{var a=5; a = 6; print a;}", "6")]
+	[TestCase("{var a=5; a = 6.052; print a;}", "6.052")]
+	[TestCase("{var a=5; var b = 5; print a + b;}", "10")]
+	[TestCase("{var a= true; a = !a; print a;}", "False")]
+	[TestCase("var b = true; { var b = false; b = true; print b;}", "True")]
+	[TestCase("if(5 > 4) print 5;", "5")]
+	[TestCase("if(5 > 6) print 5; else print 6;", "6")]
+	[TestCase("if(5 < 4 or 4 == 4) print 5;", "5")]
+	[TestCase("if(true and false) print 5; else print 6;", "6")]
+	[TestCase("if(true or false) print 5; else print 6;", "5")]
+	[TestCase("if(false and false) print 5; else print 6;", "6")]
+	[TestCase("var i = 0; while(i < 5) { print i; i = 5;} ", "0")]
+	[TestCase("var i = 0; for(; i < 1; i = i + 1) { print 0; } ", "0")]
+	[TestCase("var i = 0; var j = 1; for(j = i; i < 1; i = i + 1) { print 0; } ", "0")]
+	[TestCase(@"fun sayHi(first, last) { print ""Hi, "" + first + "" "" + last + ""!"";}
+print sayHi;
+sayHi(""Dear"", ""Reader"");", @"<fn sayHi>
+Hi, Dear Reader!")]
 	public void EvaluateStatements(string code, string expectedValue)
 	{
 		var stringWriter = new StringWriter();
 		Console.SetOut(stringWriter);
 		new StatementInterpreter().Interpret(GetStatements(code));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
-	}
-
-	[TestCase("if(5 > 4) print 5;", "5\r\n")]
-	[TestCase("if(5 > 6) print 5; else print 6;", "6\r\n")]
-	public void EvaluateIfElseStatements(string code, string expectedValue)
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements(code));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
-	}
-
-	[TestCase("if(5 < 4 or 4 == 4) print 5;", "5\r\n")]
-	[TestCase("if(true and false) print 5; else print 6;", "6\r\n")]
-	[TestCase("if(true or false) print 5; else print 6;", "5\r\n")]
-	[TestCase("if(false and false) print 5; else print 6;", "6\r\n")]
-	public void EvaluateLogicalExpressionStatements(string code, string expectedValue)
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements(code));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
-	}
-
-	[TestCase("var i = 0; while(i < 5) { print i; i = 5;} ", "0\r\n")]
-	[TestCase("if(5 > 6) print 5; else print 6;", "6\r\n")]
-	public void EvaluateWhileStatements(string code, string expectedValue)
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements(code));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
-	}
-
-	[TestCase("var i = 0; for(; i < 1; i = i + 1) { print 0; } ", "0\r\n")]
-	[TestCase("var i = 0; var j = 1; for(j = i; i < 1; i = i + 1) { print 0; } ", "0\r\n")]
-	public void EvaluateForLoop(string code, string expectedValue)
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements(code));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue));
-	}
-
-	[Test]
-	public void PrintFunctionNameAndOutput()
-	{
-		var stringWriter = new StringWriter();
-		Console.SetOut(stringWriter);
-		new StatementInterpreter().Interpret(GetStatements(
-			@"fun sayHi(first, last) { print ""Hi, "" + first + "" "" + last + ""!"";}
-print sayHi;
-sayHi(""Dear"", ""Reader"");"));
-		Assert.That(stringWriter.ToString(), Is.EqualTo(@"<fn sayHi>
-Hi, Dear Reader!
-"));
+		Assert.That(stringWriter.ToString(), Is.EqualTo(expectedValue + "\r\n"));
 	}
 
 	private static List<Statement> GetStatements(string code) =>
